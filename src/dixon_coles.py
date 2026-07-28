@@ -23,6 +23,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+from scipy.special import gammaln
 from scipy.stats import poisson
 
 from paths import load_matches
@@ -85,6 +86,42 @@ def _tau(hg, ag, lh, la, rho):
     t[m10] = 1.0 + la[m10] * rho
     t[m11] = 1.0 - rho
     return t
+
+
+def _tau_and_grads(hg, ag, lh, la, rho):
+    """tau plus its partials w.r.t. lambda_home, lambda_away and rho.
+
+    Needed for the analytic gradient. Finite-difference gradients cost ~2n+3
+    function evaluations per step, which with ~143 parameters makes the
+    hyperparameter search take hours instead of minutes.
+    """
+    t = np.ones_like(lh)
+    dt_dlh = np.zeros_like(lh)
+    dt_dla = np.zeros_like(lh)
+    dt_drho = np.zeros_like(lh)
+
+    m00 = (hg == 0) & (ag == 0)
+    m01 = (hg == 0) & (ag == 1)
+    m10 = (hg == 1) & (ag == 0)
+    m11 = (hg == 1) & (ag == 1)
+
+    t[m00] = 1.0 - lh[m00] * la[m00] * rho
+    dt_dlh[m00] = -la[m00] * rho
+    dt_dla[m00] = -lh[m00] * rho
+    dt_drho[m00] = -lh[m00] * la[m00]
+
+    t[m01] = 1.0 + lh[m01] * rho
+    dt_dlh[m01] = rho
+    dt_drho[m01] = lh[m01]
+
+    t[m10] = 1.0 + la[m10] * rho
+    dt_dla[m10] = rho
+    dt_drho[m10] = la[m10]
+
+    t[m11] = 1.0 - rho
+    dt_drho[m11] = -1.0
+
+    return t, dt_dlh, dt_dla, dt_drho
 
 
 @dataclass
@@ -183,6 +220,9 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
     init = np.concatenate([np.zeros(n), np.zeros(n), [np.log(1.35)], [0.25], [-0.05]])
     bounds = [(-3, 3)] * (2 * n) + [(-2, 2), (-1, 1), RHO_BOUNDS]
 
+    # constant across iterations, so hoist it out of the likelihood
+    log_fact = gammaln(hg + 1.0) + gammaln(ag + 1.0)
+
     def neg_ll(p):
         atk, dfn = p[:n], p[n:2 * n]
         c, adv, rho = p[2 * n], p[2 * n + 1], p[2 * n + 2]
@@ -190,15 +230,30 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
         lh = np.exp(c + atk[hi] - dfn[ai] + adv)
         la = np.exp(c + atk[ai] - dfn[hi])
 
-        ll = poisson.logpmf(hg, lh) + poisson.logpmf(ag, la)
-        tau = _tau(hg, ag, lh, la, rho)
-        ll = ll + np.log(np.clip(tau, 1e-10, None))
+        tau, dt_dlh, dt_dla, dt_drho = _tau_and_grads(hg, ag, lh, la, rho)
+        tau = np.clip(tau, 1e-10, None)
 
+        ll = (hg * np.log(lh) - lh + ag * np.log(la) - la - log_fact + np.log(tau))
         pen = SUM_ZERO_PENALTY * (atk.sum() ** 2 + dfn.sum() ** 2)
         pen += ridge * (np.sum(atk ** 2) + np.sum(dfn ** 2))
-        return -(w * ll).sum() + pen
+        obj = -(w * ll).sum() + pen
 
-    res = minimize(neg_ll, init, method="L-BFGS-B", bounds=bounds,
+        # d(loglik)/d(log rate), so the chain rule to attack/defence is just +/-1
+        gh = w * (hg - lh + lh * dt_dlh / tau)
+        ga = w * (ag - la + la * dt_dla / tau)
+
+        g_atk = np.bincount(hi, gh, n) + np.bincount(ai, ga, n)
+        g_dfn = -np.bincount(ai, gh, n) - np.bincount(hi, ga, n)
+
+        grad = np.empty_like(p)
+        grad[:n] = -g_atk + 2 * SUM_ZERO_PENALTY * atk.sum() + 2 * ridge * atk
+        grad[n:2 * n] = -g_dfn + 2 * SUM_ZERO_PENALTY * dfn.sum() + 2 * ridge * dfn
+        grad[2 * n] = -(gh + ga).sum()            # intercept
+        grad[2 * n + 1] = -gh.sum()               # home advantage
+        grad[2 * n + 2] = -(w * dt_drho / tau).sum()
+        return obj, grad
+
+    res = minimize(neg_ll, init, method="L-BFGS-B", jac=True, bounds=bounds,
                    options={"maxiter": 5000, "maxfun": 100000})
     if verbose and not res.success:
         print(f"  [optimiser note] {res.message}")
