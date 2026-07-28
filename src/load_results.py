@@ -8,7 +8,11 @@ OUTPUT_DIR = PROCESSED_DIR
 # --- The columns we want, grouped by type ---
 MATCH_FACTS = ["Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR", "HTHG", "HTAG", "HTR"]
 MATCH_STATS = ["HS", "AS", "HST", "AST", "HC", "AC", "HF", "AF", "HY", "AY", "HR", "AR", "Referee"]
-ODDS        = ["B365H", "B365D", "B365A", "WHH", "WHD", "WHA", "AvgH", "AvgD", "AvgA"]
+# Opening prices (B365/WH/Avg) span the whole history; CLOSING prices (*C*) exist
+# only from season 1920 onward. Closing is the sharper, recognised benchmark, so
+# both are kept and reported separately -- see odds.py.
+ODDS        = ["B365H", "B365D", "B365A", "WHH", "WHD", "WHA", "AvgH", "AvgD", "AvgA",
+               "B365CH", "B365CD", "B365CA", "AvgCH", "AvgCD", "AvgCA"]
 WANTED      = MATCH_FACTS + MATCH_STATS + ODDS
 
 # Clean, human-readable names for the ones we rename

@@ -21,13 +21,29 @@ these were scored.
 | Uniform (⅓ each) | 1.0986 | 0.2388 |
 | Base rates (from training data only) | 1.0682 | 0.2333 |
 | **This model** | **0.9868** | **0.2050** |
-| Bookmaker market (Bet365, de-vigged) | 0.9578 | 0.1955 |
+| Bookmaker market (Bet365 **opening**, de-vigged) | 0.9578 | 0.1955 |
 
-**The model beats the base-rate baseline by 0.081 log loss and trails the market by
-0.029.** It does not beat the market in any of the nine seasons — which is the
-expected result, and the reassuring one. A goals-only model with no injury, lineup
-or expected-goals data should not outprice a bookmaker; a result claiming otherwise
-would be evidence of a bug, not of skill.
+**The model beats the base-rate baseline by 0.081 log loss.** It does not beat the
+market in any of the nine seasons — which is the expected result, and the reassuring
+one. A goals-only model with no injury, lineup or expected-goals data should not
+outprice a bookmaker; a result claiming otherwise would be evidence of a bug, not of
+skill.
+
+### Measured against the closing line
+
+Opening odds are a softer benchmark than they look. The **closing** line has absorbed
+team news, weather and the market's own money right up to kick-off, and is the
+recognised standard. Closing prices are available from 2019-20, so on those 7 seasons:
+
+| Benchmark | Log loss | Our gap |
+|---|---:|---:|
+| Bet365 opening | 0.9689 | +0.0322 |
+| Bet365 **closing** | 0.9640 | **+0.0370** |
+| Market-average **closing** (sharpest) | 0.9639 | **+0.0371** |
+
+**So the honest figure is 0.037 behind the closing line, not 0.029.** The closing
+line is ~0.005 log loss sharper than the open, which is itself a small validation
+that the de-vigging and comparison machinery are behaving sensibly.
 
 **The probabilities are calibrated, not just accurate on average.** Binning
 predicted probability against realised frequency, no bin with n>100 deviates by
@@ -145,8 +161,16 @@ window length when a stable parameter shouldn't care. The corrected value is ~0.
 - **The Championship model is weak.** Log loss 1.0658 against a base rate of 1.0777 —
   it adds very little, and is measurably overconfident in the 0.5–0.6 probability
   band (predicted 0.541, realised 0.481, z = −4.05). Reported rather than buried.
-- **The gap to the market is widening**, from +0.004 log loss in 2019-20 to +0.049 in
-  2025-26. Cause not yet established.
+- **The gap to the market is widening**, and the cause is now identified: it is almost
+  entirely **promoted teams**. On held-out seasons the deficit is +0.047 on matches
+  involving a promoted side versus +0.022 on established sides only, and the widening
+  trend is significant for the former (slope +0.011/season, p=0.014) but not the
+  latter (p=0.48). In 2025-26 the split was +0.141 against +0.012.
+
+  Notably, the market's own absolute performance is **flat** over the same period
+  (p=0.30), so this is not "bookmakers got better" — it is our Championship-derived
+  ratings failing to price newly promoted squads, which are reshaped by transfer
+  spending the model cannot see.
 - **No expected-goals, injury, lineup or transfer data yet.** Goals only. This is the
   main reason the model trails the market.
 - **The hyperparameter surface is nearly flat** (0.9796–0.9841 across all twelve

@@ -32,6 +32,11 @@ OUTCOMES = ["H", "D", "A"]
 WINDOW_GRID = [3, 5, 8]
 HALF_LIFE_GRID = [180, 365, 730, 1460]
 
+# Opening prices span the whole history; CLOSING prices (*C) exist only from
+# 2019-20 but are the recognised benchmark -- they have absorbed team news and
+# the market's own money right up to kick-off, and are measurably sharper.
+MARKET_BOOKS = ["B365", "Avg", "B365C", "AvgC"]
+
 # The first testable season needs max(WINDOW_GRID) seasons of history so every
 # candidate window is evaluated on identical test seasons.
 MIN_HISTORY = max(WINDOW_GRID)
@@ -110,7 +115,7 @@ def evaluate(m, seasons, window, half_life, league=None, verbose=False):
            "unif_rps": rps(np.full_like(probs, 1 / 3), y)}
 
     # --- market comparison on an IDENTICAL match set ---
-    for book in ["B365", "Avg"]:
+    for book in MARKET_BOOKS:
         mask = O.has_odds(test, book).to_numpy()
         res[f"n_{book}"] = int(mask.sum())
         if mask.sum() == 0:
@@ -214,7 +219,7 @@ if __name__ == "__main__":
               f"{r['n_model']:>7}")
         print(f"{'OUR MODEL':<28} {r['model_ll']:>10.4f} {r['model_rps']:>9.4f} "
               f"{r['n_model']:>7}")
-        for book in ["B365", "Avg"]:
+        for book in MARKET_BOOKS:
             if f"{book}_ll" not in r:
                 continue
             print(f"\n  -- vs {book}, identical {r[f'n_{book}']} matches --")

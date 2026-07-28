@@ -335,11 +335,49 @@ Other findings:
 - The hyperparameter surface is nearly **flat** (0.9796–0.9841 across all 12 combos).
   Do not over-claim the 5-season/365-day choice — it is within noise. 365d did win
   at every window length, which is at least consistent.
-- **The deficit to the market widens over time**: +0.0036 (1920) → +0.0488 (2526).
-  Cause unknown. Worth investigating in Phase 5 — is the market improving, or is the
-  model degrading as squads turn over faster?
 - **B365 and Avg price almost identically** on a common set (0.9689 vs 0.9677), so
   the deficit is against the market in general, not one book's quirk.
+
+#### ⚠️ OPENING vs CLOSING odds — the benchmark was too soft
+
+football-data.co.uk ships BOTH: plain columns (`B365H`) are the **opening** price,
+`*C*` columns (`B365CH`) are the **closing** price. We originally loaded only the
+opening ones. Closing is the recognised benchmark — it has absorbed team news and
+the market's own money up to kick-off — and it is measurably sharper. Both are now
+loaded (closing exists from `1920` onward only). On the 7 overlapping seasons:
+
+| Benchmark | Log loss | our gap |
+|---|---|---|
+| B365 opening | 0.9689 | +0.0322 |
+| **B365 closing** | 0.9640 | **+0.0370** |
+| **AvgC closing** (sharpest) | 0.9639 | **+0.0371** |
+
+**Quote 0.037 vs the closing line, not 0.029 vs the open.** The ~0.005 open→close
+sharpening is also a small sanity check that the de-vigging behaves correctly.
+
+#### ⚠️ RESOLVED — the widening deficit is PROMOTED TEAMS, not a smarter market
+
+The obvious hypothesis (bookmakers now price with xG/tracking/injury feeds, so the
+frontier moved) is **not supported**. Market absolute log loss is FLAT across the
+held-out seasons (slope +0.006/season, p=0.30). Decomposing the deficit instead:
+
+| | deficit | trend slope | p |
+|---|---|---|---|
+| matches involving a **promoted** team | **+0.0468** | **+0.0112** | **0.014** |
+| established teams only | +0.0219 | +0.0021 | 0.48 (ns) |
+
+The drift lives *entirely* in promoted-team fixtures; established fixtures show no
+significant trend. 2025-26 is extreme: **+0.1409 vs +0.0122**. Recent promoted
+cohorts have been historically unusual (2425: all three relegated, a first; 2526:
+Sunderland 7th), and the market prices transfer spend and squad overhaul that a
+goals-only model cannot see.
+
+**This unifies two open items**: the "Championship weakness" and the "widening
+deficit" are the same defect. Fixing promoted-team ratings addresses both.
+
+CAVEAT when quoting these: TUNE-season deficit averages +0.0143 vs REPORT +0.0289.
+Part is genuine hyperparameter optimism, part is the real trend — they cannot be
+cleanly separated, so do not attribute a number to either.
 
 **PERFORMANCE NOTE:** `fit_dixon_coles` supplies an **analytic gradient**. Without
 it, L-BFGS-B finite-differences ~143 parameters at ~144 evaluations per step and a

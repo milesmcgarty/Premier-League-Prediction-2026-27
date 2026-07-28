@@ -1,9 +1,18 @@
 """Bookmaker odds -> de-vigged probabilities, and the comparison-set guard.
 
+OPENING vs CLOSING matters more than anything else here. football-data.co.uk ships
+both: the plain columns (B365H) are the OPENING price, the *C* columns (B365CH) are
+the CLOSING price. The closing line is the recognised benchmark in forecasting
+literature, because it has absorbed team news, weather and the market's own money
+right up to kick-off, and is measurably sharper than the open. A model compared only
+against opening odds is being graded against a softer benchmark than it should be.
+
 Coverage is NOT uniform across seasons, so the baseline column matters:
-  B365  from season 0203 (2002-03) at ~100%      <- primary, ~23 usable seasons
-  Avg   from season 1920 (2019-20) at 100%       <- consensus, cross-check only
-  WH    from 0001 but 0% in 2526 and 80% in 2425 <- unusable as a spine
+  B365   opening, from season 0203 (2002-03) at ~100%   <- longest history
+  Avg    opening consensus, from 1920 (2019-20)
+  B365C  CLOSING, from 1920 (2019-20)                   <- the real benchmark
+  AvgC   CLOSING consensus, from 1920 (2019-20)         <- the sharpest of all
+  WH     from 0001 but 0% in 2526 and 80% in 2425       <- unusable as a spine
 """
 import numpy as np
 import pandas as pd
@@ -12,10 +21,15 @@ ODDS_GROUPS = {
     "B365": ["B365H", "B365D", "B365A"],
     "WH": ["WHH", "WHD", "WHA"],
     "Avg": ["AvgH", "AvgD", "AvgA"],
+    "B365C": ["B365CH", "B365CD", "B365CA"],
+    "AvgC": ["AvgCH", "AvgCD", "AvgCA"],
 }
 
+# Longest-history benchmark, used where all 9 report seasons are needed.
 PRIMARY_BOOK = "B365"
-CROSSCHECK_BOOK = "Avg"
+# The benchmark that actually counts, where available (1920 onward).
+CLOSING_BOOK = "B365C"
+CLOSING_CONSENSUS = "AvgC"
 
 
 def clean_odds(df, verbose=True):
