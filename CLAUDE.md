@@ -76,6 +76,7 @@ Premier League Prediction Project/
 ├── src/
 │   ├── paths.py                  # single source of truth for paths + shared helpers
 │   ├── odds.py                   # Phase 4: de-vigging + the comparison-set guard
+│   ├── backtest.py               # Phase 4: THE backtest — rolling, nested, calibrated
 │   ├── load_results.py           # Phase 2: builds matches_combined.csv
 │   ├── elo.py                    # Phase 3: the EloEngine class (core maths)
 │   ├── build_elo.py              # Phase 3: replays all matches, builds+saves ratings
@@ -201,8 +202,26 @@ ClubElo: Spearman rank correlation 0.955** across 43 shared teams. That's the
 external, objective validation — our independent engine ranks teams the same way an
 established professional system does.
 
-### Phase 4 — Dixon-Coles match prediction — 🔶 IN PROGRESS
-`src/dixon_coles.py` (rebuilt 2026-07-28), `src/odds.py`.
+### Phase 4 — Dixon-Coles match prediction — ✅ DONE (backtested 2026-07-28)
+`src/dixon_coles.py` (rebuilt 2026-07-28), `src/odds.py`, `src/backtest.py`.
+
+**THE HEADLINE NUMBER.** Rolling backtest, 9 held-out seasons (1718 → 2526),
+3,420 Premier League matches, hyperparameters frozen beforehand:
+
+| Predictor | Log loss | RPS |
+|---|---|---|
+| Uniform (1/3 each) | 1.0986 | 0.2388 |
+| Base rates (training only) | 1.0682 | 0.2333 |
+| **Our model** | **0.9868** | **0.2050** |
+| Market (B365, de-vigged) | 0.9578 | 0.1955 |
+
+Beats base rates by 0.081 log loss; trails the market by 0.0289. **Never beats the
+market in any of the 9 seasons** — the expected, reassuring outcome. Championship:
+1.0658 vs base rate 1.0777 (only 0.0119 better — genuinely weak, see limitations).
+
+Calibration is sound in the PL: **no bin with n>100 deviates by more than |z|=2.**
+The Championship is NOT: the 0.5–0.6 bin predicts 0.541 and realises 0.481
+(n=1119, z=−4.05), i.e. overconfident on favourites.
 
 **`fit_dixon_coles`** fits, by weighted maximum likelihood over BOTH divisions and
 multiple seasons:
@@ -299,22 +318,34 @@ a bug — longshots over-priced, favourites under-priced, signs flipping cleanly
 across the range, affecting 0.44% of predictions. Shin/power de-vig would relax the
 proportional-margin assumption; noted for Phase 5.
 
-STILL TO DO in Phase 4 — **THE BACKTEST** (the next task):
-- Rolling train/test: fit on everything before season X, predict season X.
-- Score with **log loss** and **RPS** (ranked probability score — the standard for
-  ordered W/D/L outcomes, since predicting a draw when the answer is an away win is
-  a smaller error than predicting a home win).
-- Baselines: (a) naive, (b) the market — **B365 primary** (2002-03 onward, ~23
-  seasons), **Avg as cross-check** (2019-20 onward only). If beating B365 and
-  beating Avg differ materially on overlapping seasons, that difference is itself
-  informative: it separates an edge against one book's pricing from an edge against
-  the market consensus.
-- **Model and market MUST be scored on an identical match set** — `odds.comparison_set()`
-  enforces this and the count is always printed. This is a correctness requirement,
-  not hygiene: missing odds are not random, they cluster on obscure fixtures, which
-  are exactly the hard-to-predict ones. Scoring the market on a shrunken set while
-  the model is scored on everything hands the market an easier exam.
-- ξ to be tuned out-of-sample, watching the division gap alongside log loss.
+#### The backtest (`src/backtest.py`) — how it avoids lying to us
+
+- **Rolling**, not a single split. 380 matches cannot resolve a 0.01 log-loss gap.
+- **Nested selection of BOTH ξ and the window length** on TUNE seasons (0809→1617),
+  frozen for REPORT (1718→2526). Choosing the *window* after seeing test results is
+  the same leakage as tuning ξ on them — worth stating because it is easy to miss.
+- **Identical match sets**, counts always printed. Missing odds are not random; they
+  cluster on obscure fixtures, which are the hard ones, so a shrunken market set
+  would hand the market an easier exam.
+- **Per-season** breakdown (stable edge vs a lucky year) and **per-division**.
+- **Calibration table**, because log loss can look fine while the model is
+  systematically overconfident. This is what exposed the Championship weakness.
+
+Other findings:
+- The hyperparameter surface is nearly **flat** (0.9796–0.9841 across all 12 combos).
+  Do not over-claim the 5-season/365-day choice — it is within noise. 365d did win
+  at every window length, which is at least consistent.
+- **The deficit to the market widens over time**: +0.0036 (1920) → +0.0488 (2526).
+  Cause unknown. Worth investigating in Phase 5 — is the market improving, or is the
+  model degrading as squads turn over faster?
+- **B365 and Avg price almost identically** on a common set (0.9689 vs 0.9677), so
+  the deficit is against the market in general, not one book's quirk.
+
+**PERFORMANCE NOTE:** `fit_dixon_coles` supplies an **analytic gradient**. Without
+it, L-BFGS-B finite-differences ~143 parameters at ~144 evaluations per step and a
+fit takes ~40s; with it, ~0.1s. Verified against numerical differentiation (relative
+error 2e-7 to 2e-6) and reproduces the same estimates. If you touch the likelihood,
+**re-verify the gradient** — a wrong gradient fails silently.
 
 ---
 
@@ -456,19 +487,34 @@ forgotten. It would narrow the gap with ClubElo's globally-connected system.
 
 ## 9. Immediate next action
 
-Build the Phase 4 backtest (Section 5, "STILL TO DO"). Explain log loss and RPS in
-plain English — and what a *good* score looks like for football W/D/L — before
-writing any code, so the target is understood before the number appears. Keep the
-incremental, verify-each-step rhythm.
+**Phase 4 is complete and backtested.** `README.md`, `LICENSE` and
+`requirements.txt` are in place, so the repo is presentable to employers.
 
-Everything it needs is now in place: `dixon_coles.fit_dixon_coles()` +
-`training_window()` for rolling fits, `odds.market_probs()` for the market baseline,
-and `odds.comparison_set()` to guarantee model and market are scored on identical
-fixtures.
+Next is **Phase 5 — market blend**. The backtest gives the honest starting point:
+the model trails B365 by 0.0289 log loss, so the optimal blend weight will likely
+lean heavily on the market. That is fine and expected — the value the model adds is
+season-level distributions the market does not publish, which is Phase 6.
 
-After the backtest: a README carrying the actual headline number, plus a
-`requirements.txt` (pandas, numpy, scipy, soccerdata, duckdb, openpyxl) — without
-it nobody can run the repo.
+Three things the backtest surfaced that Phase 5 should address, in priority order:
+
+1. **The Championship model is weak** — only 0.0119 log loss better than base rates,
+   and overconfident at z=−4.05 in the 0.5–0.6 band. It is also the only place the
+   newcomer prior is exercised. Fixing this matters for the season simulator, since
+   promoted teams' ratings come from Championship form.
+2. **The widening deficit to the market** (+0.0036 in 1920 → +0.0488 in 2526).
+   Establish whether the market improved or the model is degrading.
+3. **Elo calibration is still unchecked** (§7b(b)) — this becomes load-bearing the
+   moment an Elo rating feeds a blend weight or probability.
+
+**A note on working method, earned the hard way on 2026-07-28.** Several real
+defects that day were found by *checking a number*, never by reading the code: the
+ridge compressing the division gap, the missing intercept inflating home advantage,
+the unmapped-team-name check that only printed, and the model/market comparison
+initially being run on two different match sets. Two of them were introduced by
+suggestions that sounded principled. Prefer verification that can fail structurally
+— parameter stability across specifications, byte-identical output after a refactor,
+an analytic gradient checked against finite differences, predicted-vs-actual on
+something the fit did not target — over "does this look sensible".
 
 **A note on working method, earned the hard way on 2026-07-28.** Three real defects
 that day were found by *checking a number*, never by reading the code: the ridge

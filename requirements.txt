@@ -1,0 +1,18 @@
+# Python 3.10+
+#
+# Install:   py -m venv venv
+#            venv\Scripts\activate
+#            py -m pip install -r requirements.txt
+#
+# Minimum lower bounds rather than exact pins: this is an analysis project, not a
+# deployed service, and over-pinning makes it harder to run on a fresh machine.
+# Versions on the right are what the results in the README were produced with.
+
+pandas>=2.0          # 2.3.3
+numpy>=1.24          # 2.2.6
+scipy>=1.10          # 1.15.3  -- optimize (L-BFGS-B), stats, special
+
+# --- optional: only needed for specific scripts, not the core pipeline ---
+soccerdata>=1.9      # 1.9.0   -- benchmark_elo.py (ClubElo); future xG work
+duckdb>=1.0          # 1.5.5   -- reading the Transfermarkt dataset (gitignored)
+openpyxl>=3.1        # 3.1.5   -- reads the team-name mapping spreadsheet
