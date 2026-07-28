@@ -75,6 +75,7 @@ Premier League Prediction Project/
 │       └── elo_history.csv       # every team's rating after every match (~48k rows)
 ├── src/
 │   ├── paths.py                  # single source of truth for paths + shared helpers
+│   ├── odds.py                   # Phase 4: de-vigging + the comparison-set guard
 │   ├── load_results.py           # Phase 2: builds matches_combined.csv
 │   ├── elo.py                    # Phase 3: the EloEngine class (core maths)
 │   ├── build_elo.py              # Phase 3: replays all matches, builds+saves ratings
@@ -201,40 +202,119 @@ external, objective validation — our independent engine ranks teams the same w
 established professional system does.
 
 ### Phase 4 — Dixon-Coles match prediction — 🔶 IN PROGRESS
-`src/dixon_coles.py`.
+`src/dixon_coles.py` (rebuilt 2026-07-28), `src/odds.py`.
 
-DONE so far:
-- **`fit_poisson`** — fits attack + defence rating per team by maximum likelihood
-  (scipy L-BFGS-B). Expected goals: home ~ exp(atk_home − def_away + home_adv),
-  away ~ exp(atk_away − def_home). Both attack and defence constrained to sum to
-  zero (identifiability). Needs `maxiter=1000` — at 200 it under-converged and gave
-  a wrong home advantage (0.06 instead of the correct 0.33). Fitted ratings verified
-  correct against 24-25 reality (Liverpool best attack, Arsenal best defence).
-- **`dc_correction`** — the Dixon-Coles low-score adjustment for 0-0/1-0/0-1/1-1
-  (rho, small negative ~−0.05). This is what makes it Dixon-Coles not plain Poisson;
-  it fixes the known under-prediction of low-scoring draws.
-- **`predict_match`** — builds the scoreline probability grid, applies the
-  correction, returns W/D/L probabilities + expected goals + likeliest score.
-  Verified: sensible favourites, draws in the realistic 22-31% range, and the
-  home-advantage flip works (Arsenal-vs-City reverses correctly when venue swaps).
+**`fit_dixon_coles`** fits, by weighted maximum likelihood over BOTH divisions and
+multiple seasons:
 
-**A subtle lesson worth remembering:** the *raw* home/away goal split in 24-25 was
-tiny (1.51 vs 1.42 → implied 0.06), but the fitted model correctly recovered 0.33
-because it controls for *who played whom* at home. Naive averages mislead; the model
-corrects. Good illustration of why we fit rather than eyeball.
+```
+lambda_home = exp(c + atk_home − def_away + gamma)
+lambda_away = exp(c + atk_away − def_home)
+```
 
-STILL TO DO in Phase 4 — **THE BACKTEST** (this is the next task):
-- Fit on past seasons, predict a held-out season the model never saw.
-- Score with **log loss** (punishes confident-wrong predictions) and ideally
-  **RPS** (ranked probability score, the standard for ordered W/D/L outcomes).
-- Compare against baselines: (a) naive "always home win", (b) the **bookmaker odds**
-  already stored in matches_combined.csv (B365/WH/Avg columns). Beating the naive
-  baseline is required; landing close to the market is the real, honest measure.
-- Also add **time-decay weighting** to the fit (recent matches matter more —
-  exp(−ξ·days_ago), ξ tuned by out-of-sample log loss) and fit across BOTH divisions
-  jointly with a division offset (mirrors the Elo cross-division handling).
-- This backtest is the number that proves the predictions are genuinely good, not
-  just plausible-looking. It's the most important deliverable of the phase.
+attack and defence per team (both constrained to sum to zero), a global intercept
+`c`, home advantage `gamma`, and the Dixon-Coles `rho` — all in one likelihood.
+
+**The cross-division connectivity problem (the hard part, and it mirrors Elo's).**
+Adding a constant to every Championship team's attack *and* defence leaves every
+within-Championship lambda unchanged, so the relative scale of the two divisions is
+a **flat direction in the likelihood**. League fixtures are never cross-division, so
+the ONLY thing identifying it is teams that played in both divisions inside the
+training window. Measured: a **1-season window has zero such teams** and is formally
+unidentified; 3 seasons has 7, 5 seasons has 14. Hence a 5-season default.
+An explicit division-offset parameter was considered and rejected — it is exactly
+collinear with the attack/defence of any team that never crosses, so it adds no
+identifying information and only destabilises the optimiser. The gap is read off
+post-hoc by `division_gap()` instead.
+
+**Time decay** is `exp(−ξ·days)` with a 1-year half-life, deliberately gentle:
+aggressive decay strips out the older-division matches that carry all the linking
+information (a 3-month half-life leaves only **1.5%** of fitting weight doing so).
+This tension between decay and connectivity is real — watch it when tuning ξ.
+
+**RESULT — the division gap is now LEARNED, not imposed:** 301 / 267 / 255
+Elo-equivalent across 3 / 5 / 8-season windows. The Elo engine independently
+derives 232 by a completely different route (PPG drops across promotions). Two
+methods, one estimated and one measured, land in the same place. That is genuine
+corroboration and a portfolio highlight.
+
+#### ⚠️ CORRECTION — home advantage is ~0.21, NOT 0.33
+
+This file previously recorded 0.33 as a **passed correctness test**. That was
+wrong, and the way it was wrong is the point:
+
+The old single-season fit had **no intercept term**. With only `gamma` available,
+it had to absorb both the overall goal level *and* the home effect, so it settled
+too high. The tells were all there once looked for: away goals under-predicted by
+5.3% in *both* divisions, home/away goal ratio inflated to 1.303 against an actual
+1.213, `gamma` drifting 0.315 → 0.264 → 0.221 as the window lengthened (a stable
+parameter should not care), and the 8-season fit failing to converge at all.
+
+Adding the intercept fixed all four simultaneously. `gamma` is now stable at
+**0.209–0.213** regardless of window, every window converges, and predicted goals
+match the time-weighted actuals to three decimal places.
+
+**The lesson is worth more than the number.** The original 0.33 *passed* its sanity
+check — "the model recovers a sensible home advantage where the naive average said
+0.06" — and the reasoning was even correct as far as it went. But a sanity check
+can pass while the model underneath is misspecified, because the check only tested
+whether the number looked plausible, not whether the model could represent the data
+generating process. Prefer checks that can *fail structurally*: parameter stability
+across specifications, and predicted-vs-actual on a quantity the fit did not target.
+
+#### ⚠️ FINDING — the Dixon-Coles correction does nothing on modern data
+
+`rho` is now **fitted inside the likelihood** rather than hardcoded at −0.05. It
+comes out at **~+0.006, i.e. nil**. The classic 1997 motivation does not replicate
+on 2020–2025 data: Poisson predicts the overall draw rate to within **0.3%**, and
+the residual pattern is the wrong *shape* for the correction — 0-0 is
+over-predicted (wants rho > 0) while 1-1 is under-predicted (wants rho < 0), so the
+single parameter is pulled both ways and the MLE correctly lands at zero.
+
+Consequence: hardcoding −0.05 would have **actively hurt**, inflating an already
+over-predicted 0-0. Keep the parameter (it is free, and demonstrating it is ~0 is
+stronger than assuming a value), but describe the model honestly — it is closer to
+a time-weighted joint-division Poisson than to textbook Dixon-Coles.
+
+#### ⚠️ Ridge regularisation biases the division gap — default is 0
+
+An L2 penalty shrinks attack/defence toward zero. Championship teams sit below zero
+and Premier League teams above, so **it shrinks the division gap itself** — it
+biases the exact quantity the joint fit exists to estimate. Measured on a 5-season
+window: ridge 0 → 266 Elo-equivalent, ridge 1 → 206, ridge 10 → **73**, with
+promoted teams wildly overrated as a result (Burnley–Liverpool priced 35/27/38).
+If thin-data teams ever need stabilising, shrink toward each team's **own division
+mean**, which leaves the between-division gap untouched. Not toward zero.
+
+**Newcomer prior.** Teams with zero training data (League One arrivals) get the mean
+fitted rating of comparable arrivals in the window (~14 of them). These occur **only
+in the Championship** — 29 team-seasons across 26 years, never in the Premier
+League, since the only route into the tracked pool lands you in the Championship.
+So the PL backtest is unaffected by this entirely.
+
+**Odds hygiene (`src/odds.py`).** De-vigging is multiplicative (1/odds normalised to
+sum to 1). Verified correct: probability conserved to 10 d.p., aggregate H/D/A
+within 0.4pp of actual. Residual mis-calibration is **favourite–longshot bias**, not
+a bug — longshots over-priced, favourites under-priced, signs flipping cleanly
+across the range, affecting 0.44% of predictions. Shin/power de-vig would relax the
+proportional-margin assumption; noted for Phase 5.
+
+STILL TO DO in Phase 4 — **THE BACKTEST** (the next task):
+- Rolling train/test: fit on everything before season X, predict season X.
+- Score with **log loss** and **RPS** (ranked probability score — the standard for
+  ordered W/D/L outcomes, since predicting a draw when the answer is an away win is
+  a smaller error than predicting a home win).
+- Baselines: (a) naive, (b) the market — **B365 primary** (2002-03 onward, ~23
+  seasons), **Avg as cross-check** (2019-20 onward only). If beating B365 and
+  beating Avg differ materially on overlapping seasons, that difference is itself
+  informative: it separates an edge against one book's pricing from an edge against
+  the market consensus.
+- **Model and market MUST be scored on an identical match set** — `odds.comparison_set()`
+  enforces this and the count is always printed. This is a correctness requirement,
+  not hygiene: missing odds are not random, they cluster on obscure fixtures, which
+  are exactly the hard-to-predict ones. Scoring the market on a shrunken set while
+  the model is scored on everything hands the market an easier exam.
+- ξ to be tuned out-of-sample, watching the division gap alongside log loss.
 
 ---
 
@@ -290,10 +370,74 @@ STILL TO DO in Phase 4 — **THE BACKTEST** (this is the next task):
   first assessing bookmaker-odds coverage.
 - **Bookmaker odds coverage is NOT uniform** — check before using as a baseline:
   `B365` from `0203` (2002-03) at ~100%; `WH` from `0001` but **0% in `2526`** and
-  80% in `2425`; `Avg` only from `1920` (2019-20), then 100%. Two `B365H` values are
+  80% in `2425`; `Avg` only from `1920` (2019-20), then 100%. Two `B365H` values were
   a corrupt `0.0` (Blackpool-Derby 2013-04-27, Brentford-Blackburn 2019-02-02);
   `1/0` = inf implied probability, which would turn any log loss into inf/NaN.
-  The matches themselves are fine — null the odds, don't drop the rows. (TODO Step 3.)
+  RESOLVED 2026-07-28: `odds.clean_odds()` runs at load time and nulls impossible or
+  partial triplets while **keeping the match** — the results are fine, only the price
+  was bad. Use `odds.has_odds()` / `odds.comparison_set()` rather than testing the
+  raw columns yourself.
+
+---
+
+## 7b. Open findings — deliberately DEFERRED, not forgotten
+
+Found during the 2026-07-28 code review. All three are real, none block the
+backtest, and each is a good interview talking point precisely because it is a
+critique of our own work.
+
+### (a) The 232 division gap is probably inflated by regression to the mean
+
+`measure_gap.py` derives 232 from the PPG drop of promoted teams and the PPG gain
+of relegated ones. But teams are promoted partly by **over**-performing and
+relegated partly by **under**-performing, so both groups regress toward their true
+level the following season regardless of division quality. That regression is baked
+into the measured drop — and critically, **averaging the two directions does not
+cancel the bias, it compounds it**, because both point the same way.
+
+Evidence it is real. Z-scoring each PL team's PPG and its start-of-season Elo
+within each season, then taking the residual:
+
+```
+          count   mean    std
+promoted     75  +0.191  0.662     <- outperform their rating
+stayed      425  −0.034  0.616
+t = 2.50, p = 0.0146, n = 75
+```
+
+Promoted sides beat their Elo by ~0.19 SD ≈ **3 points a season**. Visible live:
+Sunderland finished **7th** in 2025-26 but ranked **16th** by Elo.
+
+Why deferred: the implied correction is only ~20 Elo points, and Dixon-Coles does
+not use Elo at all, so it cannot touch the backtest. Revisit in Phase 5.
+Note the Dixon-Coles fit **learns** 267 rather than assuming — see Phase 4.
+
+Related smaller point: `convert_gap.py` maps PPG to Elo via `PPG_GAP / 3.0`, which
+is exact only if the promoted teams' **draw rate is unchanged** (points weight a
+draw 1/3, Elo weights it 1/2). Defensible, but currently an unstated assumption and
+cheap to test from data we already have. `PPG_GAP = 0.874` is also hardcoded rather
+than read from `measure_gap.py`, so the two scripts do not actually connect.
+
+### (b) Elo has been validated for RANKING, never for CALIBRATION
+
+Spearman 0.955 vs ClubElo says the *ordering* agrees. It says nothing about whether
+a 100-point gap implies the right win probability. Our PL spread is sd 94 / range
+374, somewhat tighter than ClubElo's ~110/450 — likely the 25%-per-season regression
+compressing it.
+
+Harmless today because Dixon-Coles ignores Elo entirely. **Must be checked before
+Phase 5**, the moment an Elo rating feeds a probability or a blend weight.
+
+### (c) The two leagues share literally zero information in the Elo engine
+
+Verified: the end-of-season PL−Champ mean gap is *exactly* 232.0. That is not a
+coincidence — Elo is zero-sum and every match is within-league, so each pool's mean
+is **mathematically conserved** across a season. The re-anchor sets the gap and
+nothing can ever move it. The 232 is a pure prior that no amount of data can update.
+
+This makes the cup-data upgrade in §8 more valuable than it first reads: it is the
+only thing that would let real results inform the cross-division offset in Elo.
+(Dixon-Coles already sidesteps this — it learns the gap from crossing teams.)
 
 ---
 
@@ -312,7 +456,25 @@ forgotten. It would narrow the gap with ClubElo's globally-connected system.
 
 ## 9. Immediate next action
 
-Build the Phase 4 backtest (Section 5, "STILL TO DO"). Explain the train/test split
-and the metrics (log loss, RPS, vs baselines) before coding. Keep the incremental,
-verify-each-step rhythm. The bookmaker odds for the baseline comparison are already
-in matches_combined.csv (B365H/D/A, WHH/D/A, AvgH/D/A columns).
+Build the Phase 4 backtest (Section 5, "STILL TO DO"). Explain log loss and RPS in
+plain English — and what a *good* score looks like for football W/D/L — before
+writing any code, so the target is understood before the number appears. Keep the
+incremental, verify-each-step rhythm.
+
+Everything it needs is now in place: `dixon_coles.fit_dixon_coles()` +
+`training_window()` for rolling fits, `odds.market_probs()` for the market baseline,
+and `odds.comparison_set()` to guarantee model and market are scored on identical
+fixtures.
+
+After the backtest: a README carrying the actual headline number, plus a
+`requirements.txt` (pandas, numpy, scipy, soccerdata, duckdb, openpyxl) — without
+it nobody can run the repo.
+
+**A note on working method, earned the hard way on 2026-07-28.** Three real defects
+that day were found by *checking a number*, never by reading the code: the ridge
+compressing the division gap, the missing intercept inflating home advantage, and
+the unmapped-team-name check that only printed. Two of them were introduced by
+suggestions that sounded principled. Prefer verification that can fail structurally
+— parameter stability across specifications, byte-identical output after a refactor,
+predicted-vs-actual on something the fit did not target — over "does this look
+sensible".

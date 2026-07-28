@@ -1,5 +1,6 @@
 import pandas as pd
 
+from odds import clean_odds
 from paths import PROCESSED_DIR, RESULTS_DIR, TEAMS_CSV
 
 OUTPUT_DIR = PROCESSED_DIR
@@ -112,6 +113,8 @@ def load_all():
 
     combined = pd.concat(all_dfs, ignore_index=True)
     combined = apply_team_mapping(combined)
+    print("\nOdds hygiene:")
+    combined = clean_odds(combined)
     return combined
 
 
