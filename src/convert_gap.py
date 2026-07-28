@@ -1,9 +1,8 @@
-import pandas as pd
-from pathlib import Path
 import math
 
-ROOT = Path(__file__).parent.parent
-MATCHES = ROOT / "data" / "processed" / "matches_combined.csv"
+import pandas as pd
+
+from paths import MATCHES_CSV as MATCHES
 
 df = pd.read_csv(MATCHES, dtype={"season": str})
 df = df.dropna(subset=["home_goals", "away_goals"])

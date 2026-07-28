@@ -2,12 +2,10 @@ import warnings
 warnings.simplefilter("ignore", FutureWarning)
 
 import pandas as pd
-from pathlib import Path
 from scipy.stats import spearmanr
 import soccerdata as sd
 from build_elo import build_ratings
-
-ROOT = Path(__file__).parent.parent
+from paths import TEAMS_CSV
 
 # 1. Build YOUR ratings
 print("Building your Elo ratings...")
@@ -21,7 +19,7 @@ english = clubelo[clubelo["country"] == "ENG"].copy()
 clubelo_ratings = english["elo"].to_dict()   # {clubelo_name: rating}
 
 # 3. Map ClubElo names to YOUR canonical names via teams.csv
-teams = pd.read_csv(ROOT / "data" / "raw" / "exploration" / "teams.csv")
+teams = pd.read_csv(TEAMS_CSV)
 clubelo_to_canon = dict(zip(teams["clubelo"], teams["canonical_name"]))
 
 # 4. Build a comparison table: teams present in BOTH systems

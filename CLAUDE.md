@@ -65,13 +65,16 @@ Premier League Prediction Project/
 │   ├── raw/
 │   │   ├── results/              # 52 football-data.co.uk CSVs (Prem + Champ, 2000-2026)
 │   │   │                         #   named PremYYYY.csv / ChampYYYY.csv (e.g. Prem2526.csv)
-│   │   ├── exploration/          # throwaway recon scripts + teams.csv (see note below)
-│   │   └── transfermarkt-datasets.duckdb   # transfer/player/market-value DB
+│   │   ├── exploration/          # throwaway recon scripts (kept for provenance)
+│   │   └── transfermarkt-datasets.duckdb   # transfer/player/market-value DB (GITIGNORED, ~195 MB)
+│   ├── reference/
+│   │   └── teams.csv             # THE join spine — curated, permanent
 │   └── processed/
 │       ├── matches_combined.csv  # THE clean match table — 24,232 matches, canonical names
 │       ├── elo_ratings.csv       # final Elo per team (71 teams)
 │       └── elo_history.csv       # every team's rating after every match (~48k rows)
 ├── src/
+│   ├── paths.py                  # single source of truth for paths + shared helpers
 │   ├── load_results.py           # Phase 2: builds matches_combined.csv
 │   ├── elo.py                    # Phase 3: the EloEngine class (core maths)
 │   ├── build_elo.py              # Phase 3: replays all matches, builds+saves ratings
@@ -79,12 +82,19 @@ Premier League Prediction Project/
 │   ├── measure_gap.py            # Phase 3: measured the cross-division gap empirically
 │   ├── convert_gap.py            # Phase 3: converted that gap to Elo points (=232)
 │   └── dixon_coles.py            # Phase 4: fits attack/defence, predicts matches
-└── venv/
-
-NOTE: teams.csv currently lives in data/raw/exploration/ but SHOULD be moved to
-data/reference/teams.csv — it's a permanent curated asset, not throwaway recon.
-When you move it, update REFERENCE_DIR in load_results.py accordingly.
+└── venv/                         # GITIGNORED
 ```
+
+**Paths: import them, don't retype them.** `src/paths.py` holds every project path
+(`TEAMS_CSV`, `MATCHES_CSV`, `RESULTS_DIR`, …) plus two helpers worth knowing:
+- `load_matches()` — reads matches_combined.csv with `dtype={"season": str}` and
+  parsed dates already applied. **Use this instead of a bare `pd.read_csv`** so the
+  "0001" → int 1 gotcha can't be forgotten.
+- `active_teams(matches, season=, league=)` — the set of teams that actually played.
+  Filter Elo ratings through this before ranking; dormant clubs have stale ratings.
+
+The project is a git repo (`main`), pushed to
+https://github.com/milesmcgarty/Premier-League-Prediction-2026-27
 
 ---
 
@@ -132,8 +142,11 @@ provides, resolved the xG surprise, built `teams.csv`. No modelling code.
 - Keeps ~31 useful columns: match facts (date, teams, goals, result, half-time),
   match stats (shots, SoT, corners, fouls, cards, referee), and odds (B365, WH, Avg
   — kept where present; no single bookmaker spans all seasons, so it's permissive).
-- Maps team names → canonical via teams.csv, with a safety check that errors loudly
-  if any name fails to map.
+- Maps team names → canonical via teams.csv. If any name fails to map it raises
+  `ValueError` naming the offenders. (It previously only *printed* a warning —
+  `.map()` then turned unmapped names into NaN and silently deleted the club.
+  Fixed 2026-07-28; this matters most in Phase 7 when a newly promoted side
+  arrives with a spelling teams.csv hasn't seen.)
 - Result: **24,232 matches, 26 seasons, both leagues, 2000-08-12 to 2026-05-24.**
 
 **CORRECTNESS TEST (passed):** Reconstructed historical league tables from the clean
@@ -254,10 +267,12 @@ STILL TO DO in Phase 4 — **THE BACKTEST** (this is the next task):
 
 - **Stale team ratings**: teams that left the data window years ago (Tranmere,
   Wimbledon, etc.) have meaningless ratings clustered near the mean — they haven't
-  played in the data since ~2001 and drifted. HARMLESS as long as you filter to
-  *recently-active* teams when using ratings. Never rank against the full 71.
-- **teams.csv location**: still in `data/raw/exploration/` — move to
-  `data/reference/` and update `REFERENCE_DIR` in load_results.py.
+  played in the data since ~2001 and drifted. Confirmed still present: 22 dormant
+  clubs currently outrank the worst actual PL side (Tranmere sits at 1581, which
+  would be ~7th in the Premier League). HARMLESS **provided** you filter through
+  `paths.active_teams()`. Never rank against the full 71.
+- ~~**teams.csv location**~~: RESOLVED 2026-07-28 — now at `data/reference/teams.csv`,
+  path centralised in `src/paths.py`.
 - **FPL column is season-specific**: the `fpl` column in teams.csv reflects the
   current squad list; promoted/relegated clubs' FPL names shift yearly.
 - **Championship xG doesn't exist** in Understat (top division only) — the xG layer
@@ -269,7 +284,16 @@ STILL TO DO in Phase 4 — **THE BACKTEST** (this is the next task):
   UserWarning per file (football-data changed date formats over the years). Harmless;
   silence it if it bothers you by specifying formats per-era.
 - **Always** read matches_combined.csv with `dtype={"season": str}` or "0001"-style
-  season codes become integers.
+  season codes become integers. Easiest: just use `paths.load_matches()`.
+- **Season codes are YYnn of the START year**: `"1920"` = 2019-20, `"0001"` = 2000-01,
+  `"2526"` = 2025-26. Easy to misread `"1920"` as 1919-20 — I did exactly that when
+  first assessing bookmaker-odds coverage.
+- **Bookmaker odds coverage is NOT uniform** — check before using as a baseline:
+  `B365` from `0203` (2002-03) at ~100%; `WH` from `0001` but **0% in `2526`** and
+  80% in `2425`; `Avg` only from `1920` (2019-20), then 100%. Two `B365H` values are
+  a corrupt `0.0` (Blackpool-Derby 2013-04-27, Brentford-Blackburn 2019-02-02);
+  `1/0` = inf implied probability, which would turn any log loss into inf/NaN.
+  The matches themselves are fine — null the odds, don't drop the rows. (TODO Step 3.)
 
 ---
 

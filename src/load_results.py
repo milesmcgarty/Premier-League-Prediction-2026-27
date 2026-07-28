@@ -1,10 +1,8 @@
 import pandas as pd
-from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
-RESULTS_DIR = ROOT / "data" / "raw" / "results"
-OUTPUT_DIR = ROOT / "data" / "processed"
-REFERENCE_DIR = ROOT / "data" / "raw" / "exploration"   # where teams.csv lives
+from paths import PROCESSED_DIR, RESULTS_DIR, TEAMS_CSV
+
+OUTPUT_DIR = PROCESSED_DIR
 
 # --- The columns we want, grouped by type ---
 MATCH_FACTS = ["Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR", "HTHG", "HTAG", "HTR"]
@@ -36,6 +34,12 @@ def load_one_file(filepath):
             break
         except UnicodeDecodeError:
             continue
+    else:
+        # Without this, `header` stays undefined and the next read dies with a
+        # confusing NameError instead of naming the file that actually failed.
+        raise RuntimeError(
+            f"Could not decode {filepath.name} as utf-8-sig or latin1"
+        )
 
     # Read using ONLY the declared header columns -- extra trailing junk on some
     # rows is ignored rather than crashing the parse or dropping the whole row.
@@ -72,17 +76,23 @@ def load_one_file(filepath):
 
 def apply_team_mapping(df):
     """Replace football-data team names with canonical names from teams.csv."""
-    teams = pd.read_csv(REFERENCE_DIR / "teams.csv")
+    teams = pd.read_csv(TEAMS_CSV)
     mapping = dict(zip(teams["football_data"], teams["canonical_name"]))
 
-    # Find any names in the data that AREN'T in the mapping, before replacing
+    # Find any names in the data that AREN'T in the mapping, before replacing.
+    # This MUST raise, not warn: .map() turns an unmapped name into NaN, which
+    # silently deletes that club from the dataset. A newly promoted side whose
+    # football-data spelling we haven't seen would vanish without a trace.
     all_names = set(df["home_team"]) | set(df["away_team"])
     unmapped = sorted(n for n in all_names if n not in mapping)
     if unmapped:
-        print(f"\n!!! {len(unmapped)} UNMAPPED TEAM NAMES: {unmapped}")
-        print("   Add these to teams.csv before trusting the output.")
-    else:
-        print("\n  All team names mapped successfully.")
+        raise ValueError(
+            f"{len(unmapped)} team name(s) in the results data are missing from "
+            f"{TEAMS_CSV.name}: {unmapped}. Add them (with their canonical_name) "
+            "before trusting the output -- unmapped names become NaN and the "
+            "club is dropped from every downstream table."
+        )
+    print("\n  All team names mapped successfully.")
 
     df["home_team"] = df["home_team"].map(mapping)
     df["away_team"] = df["away_team"].map(mapping)

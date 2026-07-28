@@ -1,9 +1,6 @@
 import pandas as pd
-from pathlib import Path
 from elo import EloEngine
-
-ROOT = Path(__file__).parent.parent
-MATCHES = ROOT / "data" / "processed" / "matches_combined.csv"
+from paths import MATCHES_CSV as MATCHES, PROCESSED_DIR
 
 DIVISION_GAP = 232   # measured empirically from 25 years of promotions/relegations
 TARGET_MEAN = 1500   # recenter the whole pool here at the end (cosmetic)
@@ -107,7 +104,7 @@ if __name__ == "__main__":
         print(f"  {i:2d}. {team:28s} {rating:.0f}")
 
 # --- Save ratings + history so we don't rebuild every time ---
-    out_dir = ROOT / "data" / "processed"
+    out_dir = PROCESSED_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Final ratings: one row per team, sorted strongest first

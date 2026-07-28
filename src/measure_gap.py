@@ -1,8 +1,6 @@
 import pandas as pd
-from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
-MATCHES = ROOT / "data" / "processed" / "matches_combined.csv"
+from paths import MATCHES_CSV as MATCHES
 
 
 def season_ppg(df):
