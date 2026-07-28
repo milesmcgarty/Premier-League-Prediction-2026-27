@@ -23,7 +23,8 @@ import numpy as np
 import pandas as pd
 
 import odds as O
-from dixon_coles import (attach_newcomer_prior, fit_dixon_coles, training_window)
+from dixon_coles import (LEAGUE_PARAMS, attach_newcomer_prior, fit_dixon_coles,
+                         training_window)
 from paths import load_matches
 
 OUTCOMES = ["H", "D", "A"]
@@ -199,12 +200,38 @@ if __name__ == "__main__":
           f"(TUNE log loss {G.loc[0, 'll']:.4f})")
     print("    Now frozen. Everything below is out-of-sample.")
 
+    # ---------- 1b. per-division selection ----------
+    print("\n" + "=" * 74)
+    print("1b. PER-DIVISION SELECTION (each tuned on its OWN TUNE seasons)")
+    print("=" * 74)
+    selected = {}
+    for league in ["Prem", "Champ"]:
+        rows = []
+        for wnd in WINDOW_GRID:
+            for hl in HALF_LIFE_GRID:
+                rr, *_ = evaluate(m, TUNE, wnd, hl, league=league)
+                rows.append({"window": wnd, "half_life": hl, "ll": rr["model_ll"]})
+        Gl = pd.DataFrame(rows).sort_values("ll").reset_index(drop=True)
+        selected[league] = (int(Gl.loc[0, "window"]), int(Gl.loc[0, "half_life"]))
+        print(f"  {league:>6}: window {selected[league][0]}y, "
+              f"half-life {selected[league][1]}d   "
+              f"(TUNE LL {Gl.loc[0, 'll']:.4f}, grid spread {Gl.ll.max()-Gl.ll.min():.4f})")
+    print(f"\n  dixon_coles.LEAGUE_PARAMS currently holds: "
+          f"{ {k: (v['window'], v['half_life']) for k, v in LEAGUE_PARAMS.items()} }")
+    if {k: selected[k] for k in selected} != {
+            k: (v["window"], v["half_life"]) for k, v in LEAGUE_PARAMS.items()}:
+        print("  !! MISMATCH - update LEAGUE_PARAMS in dixon_coles.py to match")
+    else:
+        print("  OK - LEAGUE_PARAMS matches what tuning selects")
+
     # ---------- 2. held-out results, by division ----------
     for league in ["Prem", "Champ"]:
+        w, hl = selected[league]
         print("\n" + "=" * 74)
-        print(f"2. HELD-OUT RESULTS - {league}  ({REPORT[0]} -> {REPORT[-1]})")
+        print(f"2. HELD-OUT RESULTS - {league}  ({REPORT[0]} -> {REPORT[-1]})"
+              f"   [window {w}y, half-life {hl}d]")
         print("=" * 74)
-        r, test, probs, y = evaluate(m, REPORT, BEST_W, BEST_HL, league=league)
+        r, test, probs, y = evaluate(m, REPORT, w, hl, league=league)
 
         print(f"\nMatch counts (model and market MUST be scored on the same set):")
         print(f"  model scored on          : {r['n_model']}")

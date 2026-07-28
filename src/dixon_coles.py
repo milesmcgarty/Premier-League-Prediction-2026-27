@@ -18,7 +18,7 @@ collinear with the attack/defence of any team that never crosses, so it adds no
 identifying information and only destabilises the optimiser. The gap is instead
 read off post-hoc via division_gap(), which doubles as a diagnostic.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -32,6 +32,20 @@ from paths import load_matches
 WINDOW_SEASONS = 5      # >= 3, else the divisions are disconnected
 HALF_LIFE_DAYS = 365    # gentle: preserves cross-division linking weight
 MAX_GOALS = 12          # grid size; truncation mass at lambda=3 is ~3e-4
+
+# Per-division hyperparameters, each selected on TUNE seasons for that division
+# only (see backtest.py). NOTE: these are two JOINT fits, not two separate models
+# -- each still spans both divisions, which is what preserves cross-division
+# connectivity. One supplies Premier League predictions, the other Championship.
+# Tuning on Premier League log loss and applying the winner to both divisions left
+# the Championship overconfident (0.5-0.6 bin at z=-4.05); refitting the
+# Championship with its own 8-season window drops that to z=-2.54 and removes
+# every |z|>3 bin. The accuracy gain is small (0.0018 log loss); the calibration
+# fix is the real reason to do it.
+LEAGUE_PARAMS = {
+    "Prem": {"window": 5, "half_life": 365},
+    "Champ": {"window": 8, "half_life": 365},
+}
 
 # RIDGE shrinks attack/defence toward ZERO. Championship teams sit below zero and
 # Premier League teams above, so it shrinks THE DIVISION GAP ITSELF -- it biases
@@ -134,6 +148,15 @@ class DixonColesFit:
     n_matches: int
     converged: bool
 
+    # INTEGRATION HOOK -- {team: (d_attack, d_defence)} added to fitted ratings.
+    # This is where squad market value / net transfer spend will plug in. Those
+    # features are not a new likelihood term; they are an offset to a team's
+    # strength (a promoted side that spent heavily should be shifted up). Because
+    # every prediction routes through _rating(), adding them later is a drop-in
+    # and can be A/B tested on the existing backtest without touching this class.
+    # Currently unused: the fitted ratings are returned unmodified.
+    adjustments: dict = field(default_factory=dict)
+
     def __post_init__(self):
         self._atk = self.ratings.set_index("team")["attack"].to_dict()
         self._def = self.ratings.set_index("team")["defence"].to_dict()
@@ -141,13 +164,16 @@ class DixonColesFit:
 
     def _rating(self, team):
         if team in self._atk:
-            return self._atk[team], self._def[team]
-        if self.prior is None:
+            a, d = self._atk[team], self._def[team]
+        elif self.prior is not None:
+            a, d = self.prior
+        else:
             raise KeyError(
                 f"'{team}' has no training data and no newcomer prior is attached. "
                 "Call attach_newcomer_prior() before predicting."
             )
-        return self.prior
+        da, dd = self.adjustments.get(team, (0.0, 0.0))
+        return a + da, d + dd
 
     def lambdas(self, home_team, away_team, neutral=False):
         ah, dh = self._rating(home_team)
@@ -352,6 +378,41 @@ def attach_newcomer_prior(fit, matches, train_seasons, all_matches):
         fit.prior = (float(weak["attack"].mean()), float(weak["defence"].mean()))
         fit.prior_source = f"fallback: bottom-quartile Championship (n={len(weak)})"
     return fit
+
+
+def fit_for_league(all_matches, test_season, league, params=None):
+    """Fit the joint two-division model using `league`'s tuned hyperparameters.
+
+    THE entry point for prediction. The harness and the backtest both go through
+    here so that per-division parameters, the newcomer prior and (later) rating
+    adjustments are applied identically everywhere -- rather than each caller
+    reassembling the pipeline and drifting out of step.
+    """
+    p = params or LEAGUE_PARAMS[league]
+    seasons, cutoff = training_window(all_matches, test_season, p["window"])
+    train = all_matches[all_matches["season"].isin(seasons)]
+    fit = fit_dixon_coles(train, cutoff=cutoff, half_life_days=p["half_life"])
+    return attach_newcomer_prior(fit, train, seasons, all_matches)
+
+
+def predict_fixtures(all_matches, fixtures, test_season):
+    """Predict a set of fixtures, routing each to its division's model.
+
+    `fixtures` needs home_team, away_team and league. Returns the same frame with
+    prob_H / prob_D / prob_A and expected goals attached.
+    """
+    out = fixtures.copy()
+    for col in ["prob_H", "prob_D", "prob_A", "exp_home_goals", "exp_away_goals"]:
+        out[col] = np.nan
+    for league, grp in fixtures.groupby("league"):
+        fit = fit_for_league(all_matches, test_season, league)
+        for i, r in grp.iterrows():
+            p = fit.predict(r["home_team"], r["away_team"])
+            out.loc[i, ["prob_H", "prob_D", "prob_A"]] = (
+                p["home_win"], p["draw"], p["away_win"])
+            out.loc[i, ["exp_home_goals", "exp_away_goals"]] = (
+                p["exp_home_goals"], p["exp_away_goals"])
+    return out
 
 
 def training_window(all_matches, test_season, window=WINDOW_SEASONS):
