@@ -389,11 +389,23 @@ error 2e-7 to 2e-6) and reproduces the same estimates. If you touch the likeliho
 
 ## 6. Roadmap beyond Phase 4 (planned, not built)
 
-- **Phase 5 — market blend**: combine model probabilities with bookmaker-implied
-  probabilities (remove overround first; blend in logit space; tune the weight
-  out-of-sample). Honest expectation: optimal weight may lean heavily on the market
-  for match outcomes — that's fine, the model provides season-level distributions
-  the market doesn't publish.
+- **Phase 5 — market blend — ✅ DONE, and it FAILED.** `src/blend.py`. Log-opinion
+  pool, weight tuned on TUNE and reported on REPORT. Result: PL blend w=0.10 scores
+  0.9583 vs market-only 0.9578 — **worse**. Championship picked **w=0.00**,
+  discarding the model outright. The TUNE curve is flat across w=0.00–0.20, so the
+  weight was arbitrary within noise. **Our model carries essentially no information
+  the market lacks.** Keep the code and re-run it after the promoted-team/transfer
+  work; if the model ever adds something, w will move off zero.
+  (Could not be tuned against the CLOSING line — closing odds start 2019-20, which
+  is entirely inside REPORT, so there are no closing TUNE seasons.)
+
+  **What this implies for the project's value:** match predictions where odds exist
+  should just use the market. The real contribution is **season-level distributions**
+  (Phase 6), which the market does not publish and which *cannot* be blended,
+  because August simulation requires predicting unpriced May fixtures. Consequently
+  the simulator runs on **model-only** probabilities all season — so model quality
+  drives every title/relegation number, with no market to lean on. This RAISES the
+  value of the promoted-team fix rather than lowering it.
 - **Phase 6 — season simulator**: Monte Carlo the remaining fixtures thousands of
   times → title/top-4/relegation probabilities + full points distributions.
 - **Phase 7 — live 26-27 harness**: one fixtures table (all 380, results filled in
