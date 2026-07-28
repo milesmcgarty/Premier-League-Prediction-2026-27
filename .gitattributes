@@ -1,0 +1,8 @@
+# Normalise line endings: store LF in the repo, check out native on Windows.
+# Keeps diffs clean when the same files are touched from different machines.
+* text=auto
+
+# Data files are text but should never be treated as source for diff purposes.
+*.csv text eol=lf
+*.xlsx binary
+*.duckdb binary

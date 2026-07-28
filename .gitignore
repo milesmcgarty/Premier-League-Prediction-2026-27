@@ -1,0 +1,43 @@
+# --- Python ---
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Claude Code local settings (personal, not shared) ---
+.claude/settings.local.json
+
+# --- Large binary data (NOT tracked) ---
+# transfermarkt-datasets.duckdb is ~195 MB — far over GitHub's 100 MB hard limit.
+# Re-downloadable from the upstream project: https://github.com/dcaribou/transfermarkt-datasets
+data/raw/transfermarkt-datasets.duckdb
+*.duckdb
+*.duckdb.wal
+
+# --- soccerdata scrape cache + browser automation artifacts ---
+# soccerdata caches scraped HTML/JSON here; it is large, regenerable, and machine-specific.
+soccerdata/
+.soccerdata/
+downloaded_files/
+drivers/
+*.lock
+geckodriver.log
+chromedriver*
+*.crdownload
+
+# --- Scratch / experiments ---
+scratch/
+tmp/
+*.log
