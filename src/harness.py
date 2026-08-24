@@ -25,6 +25,7 @@ import pandas as pd
 import dixon_coles as dc
 import availability as AVAIL
 import market_prior as MP
+import outrights as OR
 import simulate as S
 from fixtures import CURRENT_SEASON, load_fixtures, played_matches
 from paths import ROOT, load_matches
@@ -165,6 +166,28 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     sd_promoted, up_promoted = S.tune_promoted_sd(
         historical_matches(season), season, league, apply_prior=True)
 
+    # OUTRIGHT (season-long) MARKET. Where match odds give one fixture per team in
+    # August -- 10 constraints for 20 unknowns, hence mirrored offsets -- outright
+    # markets price every team separately. Only teams the market genuinely
+    # discriminates are used; the rest sit at the bookmaker's price floor
+    # (everything past ~2000/1 in a title market) and are left alone.
+    outright_info = {}
+    try:
+        got = OR.from_odds_api(season_teams) or OR.load_outrights(season, season_teams)
+        if got:
+            od, _hist = OR.fit_outright_offsets(
+                combined, season, league, got, fit=fit, verbose=False)
+            merged = dict(fit.adjustments)
+            for t, dv in od.items():
+                d0 = merged.get(t, (0.0, 0.0))
+                merged[t] = (d0[0] + dv, d0[1] + dv)
+            fit.adjustments = merged
+            outright_info = {t: round(v, 4) for t, v in od.items()}
+            print(f"  outright market applied to {len(od)} team(s): "
+                  f"{', '.join(sorted(got))}")
+    except Exception as e:
+        print(f"  NOTE: outright odds not applied ({type(e).__name__}: {str(e)[:70]})")
+
     sim = S.simulate_season(combined, season, league, n_sims=n_sims,
                             as_of=as_of, fit=fit, seed=seed,
                             strength_sd_promoted=sd_promoted,
@@ -211,6 +234,7 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "market_prior_scope": "all teams",
             "availability_gamma": AVAIL.AVAIL_GAMMA,
             "availability": avail_info,
+            "outright_offsets": outright_info,
             "ridge": dc.RIDGE,
             "xg_weight": fit.xg_weight,
             "xg_training_matches": fit.n_xg_matches,

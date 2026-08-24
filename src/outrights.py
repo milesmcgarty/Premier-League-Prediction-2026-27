@@ -36,6 +36,15 @@ DEFAULT_SIMS = 4000
 LR = 0.35          # damped update; the mapping from offset to probability is steep
 MAX_DELTA = 0.9    # keep offsets inside the range the fit can express
 
+# Only fit a team from a market that genuinely discriminates it. Bookmakers stop
+# pricing outrights past roughly 2000/1, so in a TITLE market every side outside
+# the top handful sits on that floor: Coventry and Hull were both 2000/1, which
+# says nothing about which is better. Fitting to those prices reads the floor as
+# information and boosts the weakest teams -- the first run had Hull City at
+# +0.382, i.e. the market supposedly rating them far above our model.
+# A team is only used where the market's implied probability clears this floor.
+MIN_MARKET_P = 0.010
+
 
 def template_path(season):
     return REFERENCE_DIR / f"outrights_{season}.csv"
@@ -136,6 +145,12 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
     idx = {t: i for i, t in enumerate(teams)}
     hist = []
 
+    # Which teams any supplied market actually discriminates. Everyone else is
+    # left at exactly zero rather than picking up the recentring constant, which
+    # would look like information and is not.
+    fitted = {t for tgt in targets.values() for t, p in tgt.items()
+              if t in idx and MIN_MARKET_P <= p <= 1 - MIN_MARKET_P}
+
     for it in range(n_iter):
         _, ours = _sim_probs(matches, season, league, fit, delta, n_sims,
                              seed=7 + it)
@@ -145,8 +160,8 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
             if mkt not in ours:
                 continue
             for t, p in tgt.items():
-                if t not in idx:
-                    continue
+                if t not in idx or p < MIN_MARKET_P or p > 1 - MIN_MARKET_P:
+                    continue                      # market does not discriminate here
                 i = idx[t]
                 # relegation runs the other way: more likely down = weaker
                 sign = -1.0 if mkt == "releg" else 1.0
@@ -155,16 +170,23 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
         step = np.where(cnt > 0, err / np.maximum(cnt, 1), 0.0)
         rmse = float(np.sqrt(np.mean(step[cnt > 0] ** 2))) if (cnt > 0).any() else 0.0
         hist.append(rmse)
-        for t in teams:
+        for t in fitted:
             delta[t] = float(np.clip(delta[t] + LR * 0.05 * step[idx[t]],
                                      -MAX_DELTA, MAX_DELTA))
-        mu = np.mean(list(delta.values()))
-        delta = {t: d - mu for t, d in delta.items()}      # keep sum zero
+        # recentre over the FITTED teams only, so their average is unchanged
+        # relative to the untouched rest of the league
+        if fitted:
+            mu = np.mean([delta[t] for t in fitted])
+            for t in fitted:
+                delta[t] -= mu
         if verbose and (it % 5 == 0 or it == n_iter - 1):
             print(f"    iter {it:>3}  logit RMSE {rmse:.4f}")
         if rmse < 0.02:
             break
-    return delta, hist
+    if verbose:
+        print(f"    fitted {len(fitted)} of {len(teams)} teams "
+              f"(the rest sit at the bookmaker's price floor and are left alone)")
+    return {t: d for t, d in delta.items() if t in fitted}, hist
 
 
 if __name__ == "__main__":
