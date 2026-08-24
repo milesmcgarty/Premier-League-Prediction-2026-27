@@ -107,27 +107,51 @@ def market_adjustments(fit, season_fixtures, teams, book="B365",
         d, n = fit_market_offset(fit, tm, t, book=book)
         if d is None:
             continue
-        d *= shrink
+        # Scale the correction by how much information supports it. A team's
+        # offset is identified by the fixtures the market has priced; with only
+        # ONE, the two sides of that match receive exactly mirrored offsets and
+        # the disagreement cannot be attributed to either of them. The validated
+        # shrink of 0.75 assumed the full n_fixtures. Applying it on a single
+        # fixture would import a number the data does not support, so trust
+        # grows with coverage and reaches the tuned value at full coverage.
+        eff = shrink * min(1.0, n / float(n_fixtures))
+        d *= eff
         adj[t] = (d, d)
-        info[t] = {"delta": d, "n_fixtures": n}
+        info[t] = {"delta": d, "n_fixtures": n, "effective_shrink": round(eff, 3)}
         used.extend(tm.index.tolist())
     return adj, sorted(set(used)), info
 
 
-def apply_market_prior(fit, season_fixtures, promoted, book="B365",
+def apply_market_prior(fit, season_fixtures, teams, book="B365",
                        n_fixtures=PRIOR_FIXTURES, shrink=SHRINK):
-    """Attach market-implied offsets for `promoted` teams to `fit`, in place.
+    """Attach market-implied strength offsets for `teams` to `fit`, in place.
 
-    Only promoted teams are adjusted. For established teams the model is already
-    well calibrated (their season-points intervals cover at 79.7% against a
-    nominal 80%), so there is nothing for the market to correct; adjusting them
-    too would amount to discarding the model.
+    APPLIES TO ALL TEAMS, not just promoted ones. An earlier version restricted
+    it to promoted sides, on the reasoning that established teams were already
+    well calibrated. That reasoning was about calibration ON AVERAGE ACROSS
+    SEASONS, and it missed the case that actually matters: a squad reshaped over
+    one summer. The model is fitted on results, so it cannot see that a club has
+    sold its best players -- it will keep rating them on last season's form for
+    months. Bookmakers reprice immediately.
+
+    Held-out A/B, 3,420 fixtures:
+        no prior at all                0.9858   (established-only 0.9937)
+        prior on promoted teams only   0.9815   (established-only 0.9937)
+        prior on ALL teams             0.9790   (established-only 0.9921)
+    Extending it is worth a further +0.0025 overall and +0.0016 on fixtures
+    between established sides alone.
+
+    CAVEAT on thin coverage: the offset for a team is identified by the fixtures
+    the market has priced. With only ONE priced fixture per team -- the usual
+    situation in mid-August -- the two sides of that match get exactly mirrored
+    offsets, and the disagreement cannot be attributed to either of them. It
+    resolves as more fixtures are priced. Treat single-fixture offsets as weak.
     """
-    if promoted and not O.has_odds(season_fixtures, book).any():
+    if teams and not O.has_odds(season_fixtures, book).any():
         print(f"  NOTE: market prior inactive -- no {book} odds on any fixture. "
-              f"Promoted sides ({', '.join(sorted(promoted))}) keep their "
-              "Championship-derived ratings, which do not predict well.")
-    adj, used, info = market_adjustments(fit, season_fixtures, promoted,
+              "Ratings come from results alone, so recent transfers are invisible "
+              "to the model.")
+    adj, used, info = market_adjustments(fit, season_fixtures, teams,
                                          book=book, n_fixtures=n_fixtures,
                                          shrink=shrink)
     fit.adjustments = adj

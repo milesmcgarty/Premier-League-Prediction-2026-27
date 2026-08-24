@@ -118,12 +118,13 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     # off those prices. Held out this cuts promoted-fixture log loss from 0.9668
     # to 0.9446. Applied ONLY to promoted sides: for established teams the model
     # is already well calibrated and there is nothing to correct.
-    promoted = sorted(S.promoted_teams(
-        pd.concat([historical_matches(season), fx.assign(season=season)],
-                  ignore_index=True), season, league))
+    _all = pd.concat([historical_matches(season), fx.assign(season=season)],
+                     ignore_index=True)
+    promoted = sorted(S.promoted_teams(_all, season, league))
+    season_teams = sorted(set(fx["home_team"]) | set(fx["away_team"]))
     prior_info = {}
-    if promoted:
-        fit, _prior_used = MP.apply_market_prior(fit, fx, promoted)
+    if season_teams:
+        fit, _prior_used = MP.apply_market_prior(fit, fx, season_teams)
         prior_info = getattr(fit, "market_prior_info", {})
 
     # Season simulation needs the full fixture list with results where played.
@@ -186,6 +187,7 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "promoted_teams": promoted,
             "market_prior_shrink": MP.SHRINK,
             "market_prior": {k: round(v["delta"], 4) for k, v in prior_info.items()},
+            "market_prior_scope": "all teams",
             "ridge": dc.RIDGE,
             "xg_weight": fit.xg_weight,
             "xg_training_matches": fit.n_xg_matches,

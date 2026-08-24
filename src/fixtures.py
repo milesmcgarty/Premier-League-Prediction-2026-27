@@ -127,6 +127,35 @@ def attach_odds(fixtures, odds=None):
     return merged.drop(columns=["_d"])
 
 
+def merge_existing_odds(df, season=CURRENT_SEASON):
+    """Carry forward odds already recorded for this season.
+
+    football-data's upcoming-fixtures feed only carries the next few days, and
+    each run rebuilds the fixture table from the FPL API. Without this, every
+    refresh would DISCARD the odds seen last week and the market prior would be
+    stuck at one priced fixture per team all season -- which is exactly the
+    coverage at which its correction has to be shrunk almost to nothing.
+    Accumulating them is what lets the prior strengthen week by week.
+    """
+    p = FIXTURES_DIR / f"{season}.csv"
+    if not p.exists():
+        return df
+    old = pd.read_csv(p, dtype={"season": str}, parse_dates=["date"])
+    cols = [c for c in old.columns if c.endswith(("H", "D", "A"))
+            and c not in ("home_team", "away_team")]
+    if not cols:
+        return df
+    key = ["home_team", "away_team"]
+    out = df.merge(old[key + cols], on=key, how="left", suffixes=("", "_old"))
+    for c in cols:
+        if c in df.columns and c + "_old" in out.columns:
+            out[c] = out[c].fillna(out[c + "_old"])
+            out = out.drop(columns=[c + "_old"])
+        elif c + "_old" in out.columns:
+            out = out.rename(columns={c + "_old": c})
+    return out
+
+
 def save_fixtures(df, season=CURRENT_SEASON):
     FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
     p = FIXTURES_DIR / f"{season}.csv"
@@ -164,6 +193,9 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"  WARNING: could not fetch upcoming odds ({e}).")
         print("           The promoted-team market prior will be inactive.")
+    df = merge_existing_odds(df)
+    if "B365H" in df.columns:
+        print(f"  odds on file after merge: {int(df['B365H'].notna().sum())} fixtures")
     path = save_fixtures(df)
     n_done = int(df["finished"].sum())
     print(f"  {len(df)} fixtures, {n_done} played, {len(df)-n_done} remaining")

@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-08-24T16:22:32",
-  "generated_utc": "2026-08-24T16:24:24+00:00",
+  "as_of": "2026-08-24T17:03:35",
+  "generated_utc": "2026-08-24T17:05:16+00:00",
   "season": "2627",
   "league": "Prem",
   "n_sims": 20000,
@@ -19,10 +19,28 @@
     ],
     "market_prior_shrink": 0.75,
     "market_prior": {
-      "Coventry City": 0.0546,
-      "Hull City": -0.0206,
-      "Ipswich Town": -0.0606
+      "Arsenal": -0.0091,
+      "Aston Villa": -0.0011,
+      "Bournemouth": 0.0029,
+      "Brentford": -0.017,
+      "Brighton": 0.0011,
+      "Chelsea": 0.0206,
+      "Coventry City": 0.0091,
+      "Crystal Palace": -0.0074,
+      "Everton": 0.0074,
+      "Fulham": -0.0206,
+      "Hull City": -0.0034,
+      "Ipswich Town": -0.0101,
+      "Leeds United": 0.0041,
+      "Liverpool": 0.02,
+      "Manchester City": -0.0029,
+      "Manchester United": 0.0034,
+      "Newcastle United": -0.02,
+      "Nottingham Forest": -0.0041,
+      "Sunderland": 0.0101,
+      "Tottenham Hotspur": 0.017
     },
+    "market_prior_scope": "all teams",
     "ridge": 0.0,
     "xg_weight": 0.25,
     "xg_training_matches": 1900,
@@ -34,7 +52,7 @@
     "converged": true,
     "newcomer_prior": "mean of 15 League One arrivals"
   },
-  "git_commit": "37eebb2",
+  "git_commit": "9fe7dad",
   "match_prediction_source": "model_only_plus_market_prior_for_promoted",
   "stale_fixtures": 9
 }
