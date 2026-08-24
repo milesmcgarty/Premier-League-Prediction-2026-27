@@ -224,6 +224,32 @@ blend test confirmed the weight stays at zero. And promoted teams remain the lea
 predictable part of the league: even with the prior their season-points intervals
 cover at 70% against a nominal 80%.
 
+### The expected-goals layer
+
+Goals are a noisy measure of how well a team played — a 1-0 win off one shot and a
+1-0 win off twenty look identical. Expected goals measures chance quality instead, so
+it should be a cleaner read on true strength.
+
+That premise checks out. Across 240 team-seasons, first-half xG predicts a team's
+second-half **goals** better than first-half goals do (r = +0.719 vs +0.666 for
+attack; +0.601 vs +0.519 for defence).
+
+It enters the model without changing the model: goals are still Poisson with the
+low-score correction, but the *estimation target* becomes `κ·xG + (1−κ)·goals`, a
+quasi-Poisson. κ=0 reproduces the goals-only model exactly, so the A/B test is part
+of the parameterisation rather than bolted on.
+
+**The payoff is real but small — held-out log loss 0.9868 → 0.9858.** Two findings
+were more interesting than the gain:
+
+- **Pure xG is worse than pure goals** (0.9890 vs 0.9868). Finishing quality isn't
+  purely noise, and discarding goals discards real signal.
+- **Understat covers the Premier League only**, so Championship matches fall back to
+  goals. That mixed measurement costs about half the benefit: a Premier-League-only
+  fit gains +0.0021 against +0.0010, and the learned division gap slides from 204 to
+  183 as κ rises — the two divisions being measured with different instruments.
+  Championship xG would fix it; no free source has it.
+
 ---
 
 ## Things that turned out to be wrong
@@ -321,8 +347,8 @@ Everything except `benchmark_elo.py` runs offline from data in the repo.
 | 6. Season simulator (Monte Carlo, calibrated) | ✅ |
 | 7. Live 2026-27 harness with weekly snapshots | ✅ |
 | 8. Promoted-team ratings via market-implied priors | ✅ |
-| 9. Expected-goals layer (Understat), A/B tested on the backtest | next |
-| 10. Player-level model (minutes, goals, assists) | planned |
+| 9. Expected-goals layer (Understat), A/B tested on the backtest | ✅ |
+| 10. Player-level model (minutes, goals, assists) | next |
 
 **Phase 5 is a negative result, kept deliberately.** Blending model probabilities
 with the market in log space was tuned out-of-sample and made things slightly

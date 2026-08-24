@@ -41,6 +41,20 @@ def _git_commit():
         return "unknown"
 
 
+def _with_xg(m):
+    """Attach match-level xG where we have it (Premier League, 2014-15 on).
+
+    Missing rows keep NaN and fall back to goals inside the fit, so this is safe
+    when the xG table is absent entirely.
+    """
+    try:
+        import xg as _X
+        return _X.attach_xg(m, _X.load_xg())
+    except Exception as e:
+        print(f"  NOTE: xG unavailable ({type(e).__name__}); fitting on goals only.")
+        return m
+
+
 def historical_matches(season):
     """Completed matches EXCLUDING `season`.
 
@@ -51,7 +65,7 @@ def historical_matches(season):
     and games. The dry run over 2025-26 caught exactly this.
     """
     m = load_matches().dropna(subset=["home_goals", "away_goals"])
-    return m[m["season"] != season]
+    return _with_xg(m[m["season"] != season])
 
 
 def build_history(season=CURRENT_SEASON):
@@ -173,6 +187,8 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "market_prior_shrink": MP.SHRINK,
             "market_prior": {k: round(v["delta"], 4) for k, v in prior_info.items()},
             "ridge": dc.RIDGE,
+            "xg_weight": fit.xg_weight,
+            "xg_training_matches": fit.n_xg_matches,
             "intercept": round(fit.intercept, 5),
             "home_adv": round(fit.home_adv, 5),
             "rho": round(fit.rho, 5),

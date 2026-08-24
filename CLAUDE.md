@@ -467,6 +467,67 @@ reading the written meta.json rather than trusting the pipeline. The prior is
 weak early (only ~1 fixture per team priced in mid-August) and sharpens as the
 season is priced.
 
+### Phase 9 — expected-goals layer — ✅ DONE (small but real gain)
+`src/xg.py` builds `data/processed/xg_matches.csv`; `dixon_coles.XG_WEIGHT`
+controls how much of it is used.
+
+**Recon re-verified, not trusted.** The Phase 1 note about Transfermarkt/GB2 was
+wrong and blocked Phase 8, so both xG claims from that same recon were retested.
+Both were CORRECT: Understat works and is Premier League only
+(`available_leagues()` returns just `ENG-Premier League`), and FBref genuinely
+exposes no xG in soccerdata 1.9.0 (four stat types, none containing it).
+
+**Data.** Understat `read_schedule()` gives 380 matches/season with `home_xg`,
+`away_xg`, for 2014-15 → 2025-26. 4,560 matches. Verified: 100% join onto
+matches_combined, and **0 goal-value mismatches across all 4,560 rows**, which
+proves the join matches the right fixtures rather than merely the right count.
+Mean xG [1.580, 1.271] sits alongside mean goals [1.543, 1.258].
+
+**The premise, tested before modelling.** Does first-half xG predict second-half
+GOALS better than first-half goals do? Across 240 team-seasons:
+
+| predictor of 2nd-half … | goals-based r | xG-based r |
+|---|---|---|
+| goals scored | +0.666 | **+0.719** |
+| goals conceded | +0.519 | **+0.601** |
+
+Yes — clearly, and more so on defence.
+
+**How it enters the model.** The MODEL is unchanged: goals are still Poisson
+with the low-score correction. Only the ESTIMATION target changes:
+`y = κ·xG + (1−κ)·goals`, a quasi-Poisson (score equations stay consistent for
+the mean with non-integer y; `log(y!)` → `lgamma(y+1)`). `tau` still uses the
+actual integer scoreline, since it describes discrete structure, not the rate.
+κ=0 recovers the goals-only model EXACTLY (verified: home_adv 0.2096, rho
+0.0070 unchanged), so the A/B is built into the parameterisation.
+
+**Result.** κ selected on xG-covered TUNE seasons (1415-1617), held out on
+1718-2526 over 3,420 matches:
+
+| | log loss | RPS | division gap |
+|---|---|---|---|
+| goals only (κ=0) | 0.9868 | 0.2050 | 204 |
+| **blended (κ=0.25)** | **0.9858** | 0.2047 | 199 |
+| xG only (κ=1) | 0.9890 | 0.2057 | **183** |
+
+#### ⚠️ Two findings that matter more than the +0.0010
+
+**Pure xG is WORSE than pure goals** — in the joint fit (0.9890 vs 0.9868) and in
+a PL-only fit (0.9802 vs 0.9792). Finishing quality is not purely noise;
+throwing goals away throws real signal away. Do not raise κ toward 1.
+
+**Understat's PL-only coverage costs about half the benefit.** Championship
+matches always fall back to goals, so at high κ the two divisions are measured
+with different instruments — and the learned division gap slides 204 → 183 as
+κ goes 0 → 1. A PL-ONLY fit, where every match has xG, gains **+0.0021** against
++0.0010 for the joint fit, and its κ curve is a clean inverted-U peaking at 0.5
+rather than the flat joint curve. That PL-only figure is a DIAGNOSTIC of the
+mechanism, not a validated setting — it was found by looking at held-out data.
+The shipped κ=0.25 came from proper nested tuning.
+
+Championship xG would fix this, and no free source has it. That is the single
+thing that would make this layer worth more.
+
 ---
 
 ## 6. Roadmap beyond Phase 4 (planned, not built)
@@ -538,7 +599,12 @@ season is priced.
   Live evidence of the problem: the 2026-27 opening forecast puts **Hull City at
   21.8 xPts and 93.6% relegation** — the same shape of error as Sunderland last
   season (predicted 21.3 xPts / 96.3% relegation, actually finished 7th on 54).
-- **Phase 9 — xG layer**: refit team strength on Understat xG (less noisy than raw
+- **Phase 9 — xG layer — ✅ DONE (small gain).** `src/xg.py`, and `XG_WEIGHT`
+  in dixon_coles. See section 5. Short version: the premise holds but the payoff
+  is modest — held-out log loss 0.9868 → 0.9858. Pure xG is WORSE than pure
+  goals, and Understat's Premier-League-only coverage costs roughly half the
+  benefit.
+- ~~**Phase 9 — xG layer**~~ (superseded): refit team strength on Understat xG (less noisy than raw
   goals). Strict A/B against the goals-only model on the backtest — only keep it if
   log loss improves. Also: consider an xG-based Elo variant here.
 - **Phase 10 — player layer**: minutes model + empirical-Bayes shrinkage on per-90

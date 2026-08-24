@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-08-24T15:36:39",
-  "generated_utc": "2026-08-24T15:37:50+00:00",
+  "as_of": "2026-08-24T16:22:32",
+  "generated_utc": "2026-08-24T16:24:24+00:00",
   "season": "2627",
   "league": "Prem",
   "n_sims": 20000,
@@ -19,20 +19,22 @@
     ],
     "market_prior_shrink": 0.75,
     "market_prior": {
-      "Coventry City": 0.0667,
-      "Hull City": -0.0158,
-      "Ipswich Town": -0.0462
+      "Coventry City": 0.0546,
+      "Hull City": -0.0206,
+      "Ipswich Town": -0.0606
     },
     "ridge": 0.0,
-    "intercept": 0.14616,
-    "home_adv": 0.19668,
-    "rho": -0.05283,
+    "xg_weight": 0.25,
+    "xg_training_matches": 1900,
+    "intercept": 0.15332,
+    "home_adv": 0.19964,
+    "rho": -0.05286,
     "training_matches": 4660,
     "effective_sample_size": 1165.2,
     "converged": true,
     "newcomer_prior": "mean of 15 League One arrivals"
   },
-  "git_commit": "2ba17f7",
+  "git_commit": "37eebb2",
   "match_prediction_source": "model_only_plus_market_prior_for_promoted",
   "stale_fixtures": 9
 }

@@ -13,7 +13,7 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 12,Bristol City,Bristol City,,,,Bristol City,
 13,Burnley,Burnley,Burnley FC,,,Burnley,Burnley
 14,Burton Albion,Burton,,,,,
-15,Cardiff City,Cardiff,Cardiff City,,,Cardiff,
+15,Cardiff City,Cardiff,Cardiff City,,Cardiff,Cardiff,
 16,Charlton Athletic,Charlton,,,,Charlton,
 17,Chelsea,Chelsea,Chelsea FC,Chelsea,Chelsea,Chelsea,Chelsea
 18,Colchester United,Colchester,,,,,
@@ -26,27 +26,27 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 25,Fulham,Fulham,Fulham FC,Fulham,Fulham,Fulham,Fulham
 26,Gillingham,Gillingham,,,,,
 27,Grimsby Town,Grimsby,,,,,
-28,Huddersfield Town,Huddersfield,Huddersfield Town,,,,
-29,Hull City,Hull,Hull City,,,Hull,Hull City
+28,Huddersfield Town,Huddersfield,Huddersfield Town,,Huddersfield,,
+29,Hull City,Hull,Hull City,,Hull,Hull,Hull City
 30,Ipswich Town,Ipswich,Ipswich Town,Ipswich Town,Ipswich,Ipswich,Ipswich Town
-31,Leeds United,Leeds,Leeds United,,,Leeds,Leeds
+31,Leeds United,Leeds,Leeds United,,Leeds,Leeds,Leeds
 32,Leicester City,Leicester,Leicester City,Leicester City,Leicester,,
 33,Liverpool,Liverpool,Liverpool FC,Liverpool,Liverpool,Liverpool,Liverpool
-34,Luton Town,Luton,Luton Town,,,,
+34,Luton Town,Luton,Luton Town,,Luton,,
 35,Manchester City,Man City,Manchester City,Manchester City,Manchester City,Man City,Man City
 36,Manchester United,Man United,Manchester United,Manchester Utd,Manchester United,Man United,Man Utd
 37,Middlesbrough,Middlesbrough,Middlesbrough FC,,,Middlesbrough,
 38,Millwall,Millwall,,,,Millwall,
 39,MK Dons,Milton Keynes Dons,,,,,
 40,Newcastle United,Newcastle,Newcastle United,Newcastle,Newcastle United,Newcastle,Newcastle
-41,Norwich City,Norwich,Norwich City,,,Norwich,
+41,Norwich City,Norwich,Norwich City,,Norwich,Norwich,
 42,Nottingham Forest,Nott'm Forest,Nottingham Forest,Nottingham,Nottingham Forest,Forest,Nott'm Forest
 43,Oxford United,Oxford,,,,,
 44,Peterborough United,Peterboro,,,,,
 45,Plymouth Argyle,Plymouth,,,,,
 46,Portsmouth,Portsmouth,,,,Portsmouth,
 47,Preston North End,Preston,,,,Preston,
-48,QPR,QPR,Queens Park Rangers,,,QPR,
+48,QPR,QPR,Queens Park Rangers,,Queens Park Rangers,QPR,
 49,Reading,Reading,Reading FC,,,,
 50,Rotherham United,Rotherham,,,,,
 51,Scunthorpe United,Scunthorpe,,,,,
@@ -55,9 +55,9 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 54,Southampton,Southampton,Southampton FC,Southampton,Southampton,Southampton,
 55,Southend United,Southend,,,,,
 56,Stockport County,Stockport,,,,,
-57,Stoke City,Stoke,Stoke City,,,Stoke,
+57,Stoke City,Stoke,Stoke City,,Stoke,Stoke,
 58,Sunderland,Sunderland,Sunderland AFC,,,Sunderland,Sunderland
-59,Swansea City,Swansea,Swansea City,,,Swansea,
+59,Swansea City,Swansea,Swansea City,,Swansea,Swansea,
 60,Tottenham Hotspur,Tottenham,Tottenham Hotspur,Tottenham,Tottenham,Tottenham,Spurs
 61,Tranmere Rovers,Tranmere,,,,,
 62,Walsall,Walsall,,,,,

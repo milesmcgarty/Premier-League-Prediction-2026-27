@@ -33,6 +33,23 @@ WINDOW_SEASONS = 5      # >= 3, else the divisions are disconnected
 HALF_LIFE_DAYS = 365    # gentle: preserves cross-division linking weight
 MAX_GOALS = 12          # grid size; truncation mass at lambda=3 is ~3e-4
 
+# How much expected-goals data goes into the FITTING TARGET:
+#     y = XG_WEIGHT * xG + (1 - XG_WEIGHT) * goals
+# Selected on xG-covered TUNE seasons (1415-1617) and reported on held-out
+# 1718-2526: log loss 0.9868 -> 0.9858. A small but real gain.
+#
+# Two findings worth keeping:
+#   - PURE xG (weight 1.0) is WORSE than pure goals, in both the joint fit
+#     (0.9890) and a PL-only fit (0.9802 vs 0.9792). Finishing quality is not
+#     entirely noise; discarding goals discards real signal.
+#   - Understat covers the PREMIER LEAGUE ONLY, so Championship matches always
+#     fall back to goals. That mixed measurement costs roughly half the benefit:
+#     a PL-only fit gains +0.0021 against +0.0010 here, and the learned division
+#     gap slides 204 -> 183 as the weight goes 0 -> 1, because the two divisions
+#     are then being measured with different instruments. That is the reason not
+#     to push this weight higher.
+XG_WEIGHT = 0.25
+
 # Per-division hyperparameters, each selected on TUNE seasons for that division
 # only (see backtest.py). NOTE: these are two JOINT fits, not two separate models
 # -- each still spans both divisions, which is what preserves cross-division
@@ -147,6 +164,8 @@ class DixonColesFit:
     ess: float                # effective sample size = sum of time weights
     n_matches: int
     converged: bool
+    xg_weight: float = 0.0    # kappa: how much xG went into the fitting target
+    n_xg_matches: int = 0     # how many training rows actually had xG
 
     # INTEGRATION HOOK -- {team: (d_attack, d_defence)} added to fitted ratings.
     # This is where squad market value / net transfer spend will plug in. Those
@@ -211,7 +230,7 @@ class DixonColesFit:
 
 
 def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
-                    ridge=RIDGE, verbose=False):
+                    ridge=RIDGE, verbose=False, xg_weight=0.0):
     """Weighted Dixon-Coles MLE: attack, defence, intercept, home adv and rho.
 
         lambda_home = exp(c + atk_home - def_away + gamma)
@@ -219,6 +238,22 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
 
     rho is fitted INSIDE the likelihood rather than hardcoded -- that is what
     makes this Dixon-Coles rather than Poisson with an arbitrary tweak.
+
+    xg_weight (kappa) blends expected goals into the ESTIMATION target:
+
+        y = kappa * xG + (1 - kappa) * goals
+
+    The MODEL is unchanged -- goals are still Poisson with the low-score
+    correction. Only the observation used to estimate lambda's parameters
+    changes, on the grounds that xG is a less noisy measurement of the same
+    underlying rate. This is a quasi-Poisson: the score equations remain
+    consistent for the mean with non-integer y, and log(y!) becomes lgamma(y+1).
+    kappa = 0 recovers the goals-only model exactly, so the A/B test is built
+    into the parameterisation rather than bolted on.
+
+    tau still uses the ACTUAL integer scoreline, because it describes discrete
+    scoreline dependence, not the rate. Rows with no xG (any Championship match,
+    and any Premier League match before 2014-15) fall back to goals.
 
     The intercept c is NOT cosmetic. Without it the model has exactly one flat
     direction (atk += k, def += k) but two sum-to-zero constraints, so the second
@@ -238,6 +273,18 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
     hg = matches["home_goals"].to_numpy().astype(int)
     ag = matches["away_goals"].to_numpy().astype(int)
 
+    # Estimation target: blend xG in where it exists, else fall back to goals.
+    yh = hg.astype(float)
+    ya = ag.astype(float)
+    n_xg = 0
+    if xg_weight > 0 and {"home_xg", "away_xg"} <= set(matches.columns):
+        xh = matches["home_xg"].to_numpy(dtype=float)
+        xa = matches["away_xg"].to_numpy(dtype=float)
+        ok = np.isfinite(xh) & np.isfinite(xa)
+        n_xg = int(ok.sum())
+        yh[ok] = xg_weight * xh[ok] + (1.0 - xg_weight) * hg[ok]
+        ya[ok] = xg_weight * xa[ok] + (1.0 - xg_weight) * ag[ok]
+
     if cutoff is None:
         cutoff = matches["date"].max()
     w = time_weights(matches["date"], cutoff, half_life_days)
@@ -247,7 +294,7 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
     bounds = [(-3, 3)] * (2 * n) + [(-2, 2), (-1, 1), RHO_BOUNDS]
 
     # constant across iterations, so hoist it out of the likelihood
-    log_fact = gammaln(hg + 1.0) + gammaln(ag + 1.0)
+    log_fact = gammaln(yh + 1.0) + gammaln(ya + 1.0)
 
     def neg_ll(p):
         atk, dfn = p[:n], p[n:2 * n]
@@ -259,14 +306,14 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
         tau, dt_dlh, dt_dla, dt_drho = _tau_and_grads(hg, ag, lh, la, rho)
         tau = np.clip(tau, 1e-10, None)
 
-        ll = (hg * np.log(lh) - lh + ag * np.log(la) - la - log_fact + np.log(tau))
+        ll = (yh * np.log(lh) - lh + ya * np.log(la) - la - log_fact + np.log(tau))
         pen = SUM_ZERO_PENALTY * (atk.sum() ** 2 + dfn.sum() ** 2)
         pen += ridge * (np.sum(atk ** 2) + np.sum(dfn ** 2))
         obj = -(w * ll).sum() + pen
 
         # d(loglik)/d(log rate), so the chain rule to attack/defence is just +/-1
-        gh = w * (hg - lh + lh * dt_dlh / tau)
-        ga = w * (ag - la + la * dt_dla / tau)
+        gh = w * (yh - lh + lh * dt_dlh / tau)
+        ga = w * (ya - la + la * dt_dla / tau)
 
         g_atk = np.bincount(hi, gh, n) + np.bincount(ai, ga, n)
         g_dfn = -np.bincount(ai, gh, n) - np.bincount(hi, ga, n)
@@ -298,6 +345,8 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
         rho=float(res.x[2 * n + 2]),
         ess=float(w.sum()),
         n_matches=len(matches),
+        xg_weight=float(xg_weight),
+        n_xg_matches=n_xg,
         converged=bool(res.success),
     )
 
@@ -381,7 +430,7 @@ def attach_newcomer_prior(fit, matches, train_seasons, all_matches):
 
 
 def fit_for_league(all_matches, test_season, league, params=None,
-                   extra=None, cutoff=None):
+                   extra=None, cutoff=None, xg_weight=None):
     """Fit the joint two-division model using `league`'s tuned hyperparameters.
 
     THE entry point for prediction. The harness and the backtest both go through
@@ -390,6 +439,7 @@ def fit_for_league(all_matches, test_season, league, params=None,
     reassembling the pipeline and drifting out of step.
     """
     p = params or LEAGUE_PARAMS[league]
+    xg_weight = XG_WEIGHT if xg_weight is None else xg_weight
     seasons, auto_cutoff = training_window(all_matches, test_season, p["window"])
     train = all_matches[all_matches["season"].isin(seasons)]
 
@@ -403,7 +453,8 @@ def fit_for_league(all_matches, test_season, league, params=None,
         train = pd.concat([train, extra[keep]], ignore_index=True)
 
     cutoff = pd.Timestamp(cutoff) if cutoff is not None else auto_cutoff
-    fit = fit_dixon_coles(train, cutoff=cutoff, half_life_days=p["half_life"])
+    fit = fit_dixon_coles(train, cutoff=cutoff, half_life_days=p["half_life"],
+                          xg_weight=xg_weight)
     return attach_newcomer_prior(fit, train, seasons, all_matches)
 
 
