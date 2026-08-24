@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 import pandas as pd
 
 import dixon_coles as dc
+import market_prior as MP
 import simulate as S
 from fixtures import CURRENT_SEASON, load_fixtures, played_matches
 from paths import ROOT, load_matches
@@ -96,6 +97,21 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     # dates, so time decay already gives them the heaviest weight.
     fit = dc.fit_for_league(hist, season, league, extra=done, cutoff=as_of)
 
+    # MARKET PRIOR for promoted teams. Their rating comes from Championship
+    # form, which does not predict Premier League performance (corr +0.004 over
+    # 75 promotions). Bookmakers price their opening fixtures knowing the summer
+    # transfers and squad overhaul we cannot see, so we read a strength offset
+    # off those prices. Held out this cuts promoted-fixture log loss from 0.9668
+    # to 0.9446. Applied ONLY to promoted sides: for established teams the model
+    # is already well calibrated and there is nothing to correct.
+    promoted = sorted(S.promoted_teams(
+        pd.concat([historical_matches(season), fx.assign(season=season)],
+                  ignore_index=True), season, league))
+    prior_info = {}
+    if promoted:
+        fit, _prior_used = MP.apply_market_prior(fit, fx, promoted)
+        prior_info = getattr(fit, "market_prior_info", {})
+
     # Season simulation needs the full fixture list with results where played.
     combined = pd.concat(
         [historical_matches(season), fx.assign(season=season)], ignore_index=True)
@@ -147,7 +163,9 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "strength_sd": S.STRENGTH_SD,
             "strength_sd_promoted": sd_promoted,
             "promoted_up_ratio": up_promoted,
-            "promoted_teams": sorted(S.promoted_teams(combined, season, league)),
+            "promoted_teams": promoted,
+            "market_prior_shrink": MP.SHRINK,
+            "market_prior": {k: round(v["delta"], 4) for k, v in prior_info.items()},
             "ridge": dc.RIDGE,
             "intercept": round(fit.intercept, 5),
             "home_adv": round(fit.home_adv, 5),
@@ -158,7 +176,7 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "newcomer_prior": getattr(fit, "prior_source", None),
         },
         "git_commit": _git_commit(),
-        "match_prediction_source": "model_only",
+        "match_prediction_source": "model_only_plus_market_prior_for_promoted",
         "stale_fixtures": int(len(stale)),
     }
 

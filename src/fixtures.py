@@ -21,6 +21,11 @@ from paths import ROOT, TEAMS_CSV
 FIXTURES_DIR = ROOT / "data" / "fixtures"
 FPL_FIXTURES = "https://fantasy.premierleague.com/api/fixtures/"
 FPL_BOOTSTRAP = "https://fantasy.premierleague.com/api/bootstrap-static/"
+# football-data publishes odds for the NEXT few days of fixtures. FPL does not
+# carry odds at all, and the promoted-team market prior needs them, so the two
+# sources are joined.
+FD_FIXTURES = "https://www.football-data.co.uk/fixtures.csv"
+FD_DIV = {"E0": "Prem", "E1": "Champ"}
 CURRENT_SEASON = "2627"
 UA = {"User-Agent": "Mozilla/5.0 (PL-prediction-project; personal analysis)"}
 
@@ -76,6 +81,52 @@ def fetch_fpl_fixtures(season=CURRENT_SEASON):
     return df
 
 
+def fetch_upcoming_odds():
+    """Odds for upcoming fixtures from football-data, canonical team names."""
+    import io
+    req = urllib.request.Request(FD_FIXTURES, headers=UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        raw = r.read().decode("utf-8-sig", errors="replace")
+    d = pd.read_csv(io.StringIO(raw))
+    d = d[d["Div"].isin(FD_DIV)].copy()
+    t = pd.read_csv(TEAMS_CSV)
+    name = dict(zip(t["football_data"], t["canonical_name"]))
+    unmapped = sorted({n for n in set(d["HomeTeam"]) | set(d["AwayTeam"])
+                       if n not in name})
+    if unmapped:
+        raise ValueError(
+            f"football-data fixture team name(s) missing from {TEAMS_CSV.name}: "
+            f"{unmapped}. Add them before trusting the odds join.")
+    d["home_team"] = d["HomeTeam"].map(name)
+    d["away_team"] = d["AwayTeam"].map(name)
+    d["date"] = pd.to_datetime(d["Date"], dayfirst=True, errors="coerce")
+    keep = ["date", "home_team", "away_team"]
+    for c in ["B365H", "B365D", "B365A", "AvgH", "AvgD", "AvgA"]:
+        if c in d.columns:
+            keep.append(c)
+    return d[keep]
+
+
+def attach_odds(fixtures, odds=None):
+    """Join upcoming-fixture odds onto the fixture table by teams and date."""
+    if odds is None:
+        odds = fetch_upcoming_odds()
+    if odds is None or odds.empty:
+        return fixtures
+    o = odds.copy()
+    o["_d"] = o["date"].dt.normalize()
+    f = fixtures.copy()
+    f["_d"] = pd.to_datetime(f["date"]).dt.normalize()
+    cols = [c for c in o.columns if c not in ("date", "home_team", "away_team", "_d")]
+    merged = f.merge(o.drop(columns=["date"]), on=["home_team", "away_team", "_d"],
+                     how="left", suffixes=("", "_new"))
+    for c in cols:
+        if c + "_new" in merged.columns:
+            merged[c] = merged[c].fillna(merged[c + "_new"])
+            merged = merged.drop(columns=[c + "_new"])
+    return merged.drop(columns=["_d"])
+
+
 def save_fixtures(df, season=CURRENT_SEASON):
     FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
     p = FIXTURES_DIR / f"{season}.csv"
@@ -101,6 +152,18 @@ def played_matches(fixtures):
 if __name__ == "__main__":
     print(f"Fetching {CURRENT_SEASON} fixtures from the FPL API...")
     df = fetch_fpl_fixtures()
+    try:
+        odds = fetch_upcoming_odds()
+        before = len(df)
+        df = attach_odds(df, odds)
+        n_odds = int(df["B365H"].notna().sum()) if "B365H" in df.columns else 0
+        print(f"  joined odds for {n_odds} upcoming fixture(s) from football-data")
+        if n_odds == 0:
+            print("  NOTE: no odds matched. The promoted-team market prior needs")
+            print("        these; without them it silently does nothing.")
+    except Exception as e:
+        print(f"  WARNING: could not fetch upcoming odds ({e}).")
+        print("           The promoted-team market prior will be inactive.")
     path = save_fixtures(df)
     n_done = int(df["finished"].sum())
     print(f"  {len(df)} fixtures, {n_done} played, {len(df)-n_done} remaining")
