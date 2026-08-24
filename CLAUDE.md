@@ -83,7 +83,14 @@ Premier League Prediction Project/
 │   ├── benchmark_elo.py          # Phase 3: validates against ClubElo (rank correlation)
 │   ├── measure_gap.py            # Phase 3: measured the cross-division gap empirically
 │   ├── convert_gap.py            # Phase 3: converted that gap to Elo points (=232)
-│   └── dixon_coles.py            # Phase 4: fits attack/defence, predicts matches
+│   ├── dixon_coles.py            # Phase 4: fits attack/defence, predicts matches
+│   ├── blend.py                  # Phase 5: market blend - TESTED, DOES NOT HELP
+│   ├── simulate.py               # Phase 6: Monte Carlo season simulation
+│   ├── fixtures.py               # Phase 7: 2026-27 fixtures+results from the FPL API
+│   ├── harness.py                # Phase 7: THE weekly run - snapshot the forecast
+│   └── validate_harness.py       # Phase 7: dry-run the harness over a done season
+├── data/fixtures/2627.csv        # the live fixture+results table
+├── data/snapshots/2627/<date>/   # dated, immutable weekly forecasts
 └── venv/                         # GITIGNORED
 ```
 
@@ -281,19 +288,29 @@ whether the number looked plausible, not whether the model could represent the d
 generating process. Prefer checks that can *fail structurally*: parameter stability
 across specifications, and predicted-vs-actual on a quantity the fit did not target.
 
-#### ⚠️ FINDING — the Dixon-Coles correction does nothing on modern data
+#### ⚠️ CORRECTED FINDING — rho DRIFTS; it is not nil, and it is not fixed
 
-`rho` is now **fitted inside the likelihood** rather than hardcoded at −0.05. It
-comes out at **~+0.006, i.e. nil**. The classic 1997 motivation does not replicate
-on 2020–2025 data: Poisson predicts the overall draw rate to within **0.3%**, and
-the residual pattern is the wrong *shape* for the correction — 0-0 is
-over-predicted (wants rho > 0) while 1-1 is under-predicted (wants rho < 0), so the
-single parameter is pulled both ways and the MLE correctly lands at zero.
+`rho` is **fitted inside the likelihood** rather than hardcoded at −0.05. An
+earlier entry here recorded it as "~+0.006, i.e. nil, the classic correction does
+not replicate on modern data". That was true of the window tested at the time and
+**wrong as a general claim**. Measured across test seasons (5-season windows):
 
-Consequence: hardcoding −0.05 would have **actively hurt**, inflating an already
-over-predicted 0-0. Keep the parameter (it is free, and demonstrating it is ~0 is
-stronger than assuming a value), but describe the model honestly — it is closer to
-a time-weighted joint-division Poisson than to textbook Dixon-Coles.
+| test season | 1819 | 1920 | 2021 | 2122 | 2223 | 2324 | 2425 | 2526 | LIVE 2627 |
+|---|---|---|---|---|---|---|---|---|---|
+| rho | −0.058 | −0.037 | −0.018 | −0.010 | +0.000 | +0.012 | +0.015 | +0.007 | **−0.053** |
+
+The correction was real in older data, faded to zero around 2022–2025, and has
+**returned** on the live window. Cause: a surge in 1-1 draws — per-season rate
+0.105 (2324) → 0.131 (2425) → 0.140 (2526), with the overall draw rate rising
+from ~0.24 to ~0.268. On the live window Poisson under-predicts 1-1 by 13.7% and
+over-predicts 1-0 and 0-1 by ~10% each, which is a textbook rho<0 signature; in
+the previous window those cells pulled in opposite directions and the MLE
+correctly sat near zero.
+
+**The durable lesson is stronger than the original finding.** Hardcoding −0.05
+would have been wrong in 2024; hardcoding 0 would be wrong now. Fitting rho is
+what lets the model track a genuine change in how football is scored. The
+backtest is unaffected — it refits rho for every window, so it adapted throughout.
 
 #### ⚠️ Ridge regularisation biases the division gap — default is 0
 
@@ -406,21 +423,59 @@ error 2e-7 to 2e-6) and reproduces the same estimates. If you touch the likeliho
   the simulator runs on **model-only** probabilities all season — so model quality
   drives every title/relegation number, with no market to lean on. This RAISES the
   value of the promoted-team fix rather than lowering it.
-- **Phase 6 — season simulator**: Monte Carlo the remaining fixtures thousands of
-  times → title/top-4/relegation probabilities + full points distributions.
-- **Phase 7 — live 26-27 harness**: one fixtures table (all 380, results filled in
-  weekly), a weekly re-run that updates Elo (incremental) + refits Dixon-Coles
-  (fast) + re-simulates, and **snapshots every output with a date** so you build a
-  week-by-week history of how the forecast evolved. Ships before 21 Aug 2026.
-- **Phase 8 — xG layer**: refit team strength on Understat xG (less noisy than raw
+- **Phase 6 — season simulator — ✅ DONE.** `src/simulate.py`. Samples a full
+  SCORELINE per remaining fixture (not just W/D/L) so goal difference and the
+  tie-breaks that decide titles come out right. 10,000 seasons in <1s.
+  **Correctness:** reproduces real historical tables exactly; with every match
+  played the forecast IS the final table (points and position, all 20 teams);
+  simulated mean points match analytic expected points to 0.13.
+  **Calibration — the important bit.** Independent per-match draws were badly
+  overconfident: only 63.9% of actual points fell in the predicted 10–90% band
+  (target 80%, z=−5.40), and the PIT rejected calibration at p=0.012. Cause:
+  independence assumes a team's strength IS its rating, but that error persists all
+  season, so a side better than rated is better in all 38 games at once. Fix:
+  `STRENGTH_SD`, a per-team season-long offset drawn once per scenario, selected on
+  TUNE by minimising PIT KS distance. Both divisions chose **0.15**. Held out:
+  coverage 75.0%, PIT p=0.646. Still marginally narrow (z=−1.68) — propagating the
+  fit's real parameter covariance instead of one scalar is the next refinement.
+- **Phase 7 — live 26-27 harness — ✅ DONE.** `src/fixtures.py` + `src/harness.py`.
+  The FPL API supplies all 380 fixtures (football-data's fixtures.csv carries only
+  the next few days, so it cannot support August season simulation — but it IS the
+  Championship source, which FPL does not cover). Weekly: refresh, re-fit on history
+  PLUS this season's results, re-simulate, write a **dated immutable snapshot** with
+  `meta.json` recording window/half-life/dispersion/git commit, so a mid-season
+  model change is visible in the history rather than silently rewriting it.
+  `snapshot_history()` reassembles the week-by-week series.
+  **Two guards worth knowing:**
+  (a) STALENESS — a fixture whose kick-off has passed with no result is flagged
+  loudly; without it the harness would quietly SIMULATE already-played matches.
+  (b) `historical_matches()` EXCLUDES the current season from matches_combined,
+  because the fixture table is the source of truth for it. The dry run caught this
+  as a real double-count (760 matches in a 380-match season, all points doubled) —
+  it would have gone live the moment load_results.py was re-run mid-season.
+  **Validated** by `validate_harness.py` replaying 2025-26: the champion's title
+  probability climbs 29% → 100%, and the final snapshot reproduces the real table
+  exactly.
+- **Phase 8 — promoted-team ratings from transfer/squad-value data — NEXT.**
+  The largest remaining gap, and both the "Championship weakness" and the "widening
+  market deficit" reduce to it. The Transfermarkt DuckDB is already on disk.
+  **The integration point already exists**: `DixonColesFit.adjustments`, a
+  `{team: (d_attack, d_defence)}` dict applied inside `_rating()`, so every
+  prediction path picks it up and it can be A/B tested on the existing backtest
+  without touching the model. `blend.py` is the instrument that will say whether it
+  worked: if the model gains real information, the blend weight moves off zero.
+  Live evidence of the problem: the 2026-27 opening forecast puts **Hull City at
+  21.8 xPts and 93.6% relegation** — the same shape of error as Sunderland last
+  season (predicted 21.3 xPts / 96.3% relegation, actually finished 7th on 54).
+- **Phase 9 — xG layer**: refit team strength on Understat xG (less noisy than raw
   goals). Strict A/B against the goals-only model on the backtest — only keep it if
   log loss improves. Also: consider an xG-based Elo variant here.
-- **Phase 9 — player layer**: minutes model + empirical-Bayes shrinkage on per-90
+- **Phase 10 — player layer**: minutes model + empirical-Bayes shrinkage on per-90
   goal/assist rates, coupled to the team model's fixture xG, with FPL availability.
   Deliberately NOT XGBoost first — shrinkage baseline first, ML only if it beats it.
-- **Phase 10 — event-data lab (optional)**: build an Expected Threat model on
+- **Phase 11 — event-data lab (optional)**: build an Expected Threat model on
   StatsBomb's free 2015-16 PL season. Portfolio value; no live use.
-- **Phase 11 — front end (optional)**: Streamlit over the snapshot history.
+- **Phase 12 — front end (optional)**: Streamlit over the snapshot history.
 
 ---
 
@@ -537,40 +592,46 @@ forgotten. It would narrow the gap with ClubElo's globally-connected system.
 
 ## 9. Immediate next action
 
-**Phase 4 is complete and backtested.** `README.md`, `LICENSE` and
-`requirements.txt` are in place, so the repo is presentable to employers.
+**Phases 1-7 are complete.** The model is backtested and calibrated, the season
+simulator is calibrated, and the live harness ships dated weekly snapshots for
+2026-27. The first live snapshot is in `data/snapshots/2627/`.
 
-Next is **Phase 5 — market blend**. The backtest gives the honest starting point:
-the model trails B365 by 0.0289 log loss, so the optimal blend weight will likely
-lean heavily on the market. That is fine and expected — the value the model adds is
-season-level distributions the market does not publish, which is Phase 6.
+**Weekly operation** (the only routine job during the season):
 
-Three things the backtest surfaced that Phase 5 should address, in priority order:
+```
+py src/fixtures.py     # refresh results from the FPL API
+py src/harness.py      # re-fit, re-simulate, write a dated snapshot
+git add data/ && git commit     # the snapshot history IS the deliverable
+```
 
-1. **The Championship model is weak** — only 0.0119 log loss better than base rates,
-   and overconfident at z=−4.05 in the 0.5–0.6 band. It is also the only place the
-   newcomer prior is exercised. Fixing this matters for the season simulator, since
-   promoted teams' ratings come from Championship form.
-2. **The widening deficit to the market** (+0.0036 in 1920 → +0.0488 in 2526).
-   Establish whether the market improved or the model is degrading.
-3. **Elo calibration is still unchecked** (§7b(b)) — this becomes load-bearing the
-   moment an Elo rating feeds a blend weight or probability.
+Heed the staleness warning: if it reports fixtures past kick-off with no result,
+the feed has not updated and those matches are being simulated rather than counted.
 
-**A note on working method, earned the hard way on 2026-07-28.** Several real
-defects that day were found by *checking a number*, never by reading the code: the
-ridge compressing the division gap, the missing intercept inflating home advantage,
-the unmapped-team-name check that only printed, and the model/market comparison
-initially being run on two different match sets. Two of them were introduced by
-suggestions that sounded principled. Prefer verification that can fail structurally
-— parameter stability across specifications, byte-identical output after a refactor,
-an analytic gradient checked against finite differences, predicted-vs-actual on
-something the fit did not target — over "does this look sensible".
+**Next substantive work — Phase 8, promoted-team ratings from transfer data.**
+Everything points at it:
+1. The entire widening market deficit lives in promoted-team fixtures (+0.047 vs
+   +0.022, with the trend significant only for the promoted group, p=0.014).
+2. We capture only ~33% of the market's available Championship edge.
+3. The season simulator runs model-only all year, so this drives every title and
+   relegation number with no market to lean on.
+4. Live proof: Hull City is forecast at 21.8 xPts / 93.6% relegation for 2026-27 —
+   the same error shape as Sunderland (21.3 xPts / 96.3%, finished 7th on 54).
 
-**A note on working method, earned the hard way on 2026-07-28.** Three real defects
-that day were found by *checking a number*, never by reading the code: the ridge
-compressing the division gap, the missing intercept inflating home advantage, and
-the unmapped-team-name check that only printed. Two of them were introduced by
-suggestions that sounded principled. Prefer verification that can fail structurally
-— parameter stability across specifications, byte-identical output after a refactor,
-predicted-vs-actual on something the fit did not target — over "does this look
-sensible".
+The hook is already in place (`DixonColesFit.adjustments`), the data is on disk,
+and `blend.py` is the test of whether it worked.
+
+**A note on working method, earned the hard way.** Nearly every real defect in this
+project was found by *checking a number*, never by reading code: the ridge
+compressing the division gap, the missing intercept inflating home advantage, the
+unmapped-name check that only printed, the model/market comparison run on two
+different match sets, the overconfident season intervals, and the harness
+double-count. Several were introduced by suggestions that sounded principled.
+Prefer verification that can fail structurally — parameter stability across
+specifications, byte-identical output after a refactor, an analytic gradient
+checked against finite differences, a simulator reproducing a known final table
+exactly, predicted-vs-actual on something the fit did not target — over "does this
+look sensible".
+
+**And re-check findings as data arrives.** `rho` was recorded here as "nil on
+modern data"; one further season flipped it to −0.053. The claim was true of its
+window and wrong as a general statement. Date your findings and re-test them.

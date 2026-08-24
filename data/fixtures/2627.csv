@@ -1,0 +1,381 @@
+date,gameweek,home_team,away_team,league,season,home_goals,away_goals,finished
+2026-08-21 19:00:00,1,Arsenal,Coventry City,Prem,2627,,,False
+2026-08-22 11:30:00,1,Hull City,Manchester United,Prem,2627,,,False
+2026-08-22 14:00:00,1,Everton,Crystal Palace,Prem,2627,,,False
+2026-08-22 14:00:00,1,Ipswich Town,Sunderland,Prem,2627,,,False
+2026-08-22 14:00:00,1,Nottingham Forest,Leeds United,Prem,2627,,,False
+2026-08-22 16:30:00,1,Brentford,Tottenham Hotspur,Prem,2627,,,False
+2026-08-23 13:00:00,1,Brighton,Aston Villa,Prem,2627,,,False
+2026-08-23 13:00:00,1,Manchester City,Bournemouth,Prem,2627,,,False
+2026-08-23 15:30:00,1,Newcastle United,Liverpool,Prem,2627,,,False
+2026-08-24 19:00:00,1,Fulham,Chelsea,Prem,2627,,,False
+2026-08-28 19:00:00,2,Crystal Palace,Manchester City,Prem,2627,,,False
+2026-08-29 11:30:00,2,Liverpool,Nottingham Forest,Prem,2627,,,False
+2026-08-29 14:00:00,2,Bournemouth,Everton,Prem,2627,,,False
+2026-08-29 14:00:00,2,Coventry City,Hull City,Prem,2627,,,False
+2026-08-29 16:30:00,2,Tottenham Hotspur,Newcastle United,Prem,2627,,,False
+2026-08-30 13:00:00,2,Chelsea,Brighton,Prem,2627,,,False
+2026-08-30 13:00:00,2,Leeds United,Brentford,Prem,2627,,,False
+2026-08-30 13:00:00,2,Sunderland,Fulham,Prem,2627,,,False
+2026-08-30 15:30:00,2,Manchester United,Ipswich Town,Prem,2627,,,False
+2026-08-31 19:00:00,2,Aston Villa,Arsenal,Prem,2627,,,False
+2026-09-04 19:00:00,3,Ipswich Town,Liverpool,Prem,2627,,,False
+2026-09-05 11:30:00,3,Newcastle United,Bournemouth,Prem,2627,,,False
+2026-09-05 14:00:00,3,Brentford,Sunderland,Prem,2627,,,False
+2026-09-05 14:00:00,3,Brighton,Leeds United,Prem,2627,,,False
+2026-09-05 14:00:00,3,Fulham,Crystal Palace,Prem,2627,,,False
+2026-09-05 14:00:00,3,Manchester City,Coventry City,Prem,2627,,,False
+2026-09-05 14:00:00,3,Nottingham Forest,Tottenham Hotspur,Prem,2627,,,False
+2026-09-05 16:30:00,3,Hull City,Aston Villa,Prem,2627,,,False
+2026-09-06 13:00:00,3,Everton,Manchester United,Prem,2627,,,False
+2026-09-06 15:30:00,3,Arsenal,Chelsea,Prem,2627,,,False
+2026-09-12 14:00:00,4,Aston Villa,Nottingham Forest,Prem,2627,,,False
+2026-09-12 14:00:00,4,Bournemouth,Brentford,Prem,2627,,,False
+2026-09-12 14:00:00,4,Chelsea,Hull City,Prem,2627,,,False
+2026-09-12 14:00:00,4,Crystal Palace,Ipswich Town,Prem,2627,,,False
+2026-09-12 14:00:00,4,Liverpool,Fulham,Prem,2627,,,False
+2026-09-12 16:30:00,4,Tottenham Hotspur,Everton,Prem,2627,,,False
+2026-09-12 19:00:00,4,Sunderland,Arsenal,Prem,2627,,,False
+2026-09-13 13:00:00,4,Coventry City,Brighton,Prem,2627,,,False
+2026-09-13 15:30:00,4,Manchester United,Manchester City,Prem,2627,,,False
+2026-09-14 19:00:00,4,Leeds United,Newcastle United,Prem,2627,,,False
+2026-09-18 19:00:00,5,Brentford,Chelsea,Prem,2627,,,False
+2026-09-19 11:30:00,5,Tottenham Hotspur,Aston Villa,Prem,2627,,,False
+2026-09-19 14:00:00,5,Brighton,Arsenal,Prem,2627,,,False
+2026-09-19 14:00:00,5,Everton,Ipswich Town,Prem,2627,,,False
+2026-09-19 14:00:00,5,Leeds United,Crystal Palace,Prem,2627,,,False
+2026-09-19 14:00:00,5,Manchester City,Sunderland,Prem,2627,,,False
+2026-09-19 14:00:00,5,Newcastle United,Hull City,Prem,2627,,,False
+2026-09-19 16:30:00,5,Nottingham Forest,Coventry City,Prem,2627,,,False
+2026-09-20 13:00:00,5,Bournemouth,Liverpool,Prem,2627,,,False
+2026-09-20 15:30:00,5,Fulham,Manchester United,Prem,2627,,,False
+2026-10-10 11:30:00,6,Arsenal,Leeds United,Prem,2627,,,False
+2026-10-10 14:00:00,6,Aston Villa,Brentford,Prem,2627,,,False
+2026-10-10 14:00:00,6,Chelsea,Bournemouth,Prem,2627,,,False
+2026-10-10 14:00:00,6,Ipswich Town,Fulham,Prem,2627,,,False
+2026-10-10 14:00:00,6,Sunderland,Brighton,Prem,2627,,,False
+2026-10-10 16:30:00,6,Manchester United,Tottenham Hotspur,Prem,2627,,,False
+2026-10-11 13:00:00,6,Crystal Palace,Nottingham Forest,Prem,2627,,,False
+2026-10-11 13:00:00,6,Hull City,Everton,Prem,2627,,,False
+2026-10-11 15:30:00,6,Liverpool,Manchester City,Prem,2627,,,False
+2026-10-12 19:00:00,6,Coventry City,Newcastle United,Prem,2627,,,False
+2026-10-17 11:30:00,7,Everton,Chelsea,Prem,2627,,,False
+2026-10-17 14:00:00,7,Brentford,Liverpool,Prem,2627,,,False
+2026-10-17 14:00:00,7,Fulham,Hull City,Prem,2627,,,False
+2026-10-17 14:00:00,7,Manchester City,Ipswich Town,Prem,2627,,,False
+2026-10-17 16:30:00,7,Newcastle United,Aston Villa,Prem,2627,,,False
+2026-10-18 13:00:00,7,Bournemouth,Sunderland,Prem,2627,,,False
+2026-10-18 13:00:00,7,Brighton,Crystal Palace,Prem,2627,,,False
+2026-10-18 13:00:00,7,Leeds United,Manchester United,Prem,2627,,,False
+2026-10-18 15:30:00,7,Nottingham Forest,Arsenal,Prem,2627,,,False
+2026-10-19 19:00:00,7,Tottenham Hotspur,Coventry City,Prem,2627,,,False
+2026-10-23 19:00:00,8,Ipswich Town,Nottingham Forest,Prem,2627,,,False
+2026-10-24 11:30:00,8,Aston Villa,Manchester City,Prem,2627,,,False
+2026-10-24 14:00:00,8,Arsenal,Everton,Prem,2627,,,False
+2026-10-24 14:00:00,8,Coventry City,Fulham,Prem,2627,,,False
+2026-10-24 14:00:00,8,Liverpool,Brighton,Prem,2627,,,False
+2026-10-24 16:30:00,8,Chelsea,Tottenham Hotspur,Prem,2627,,,False
+2026-10-25 14:00:00,8,Crystal Palace,Newcastle United,Prem,2627,,,False
+2026-10-25 14:00:00,8,Hull City,Brentford,Prem,2627,,,False
+2026-10-25 14:00:00,8,Manchester United,Bournemouth,Prem,2627,,,False
+2026-10-25 16:30:00,8,Sunderland,Leeds United,Prem,2627,,,False
+2026-10-31 12:30:00,9,Chelsea,Manchester United,Prem,2627,,,False
+2026-10-31 15:00:00,9,Bournemouth,Leeds United,Prem,2627,,,False
+2026-10-31 15:00:00,9,Brentford,Nottingham Forest,Prem,2627,,,False
+2026-10-31 15:00:00,9,Coventry City,Sunderland,Prem,2627,,,False
+2026-10-31 15:00:00,9,Hull City,Ipswich Town,Prem,2627,,,False
+2026-10-31 15:00:00,9,Manchester City,Brighton,Prem,2627,,,False
+2026-10-31 17:30:00,9,Tottenham Hotspur,Crystal Palace,Prem,2627,,,False
+2026-11-01 14:00:00,9,Aston Villa,Fulham,Prem,2627,,,False
+2026-11-01 16:30:00,9,Liverpool,Arsenal,Prem,2627,,,False
+2026-11-02 20:00:00,9,Newcastle United,Everton,Prem,2627,,,False
+2026-11-07 15:00:00,10,Arsenal,Hull City,Prem,2627,,,False
+2026-11-07 15:00:00,10,Brighton,Brentford,Prem,2627,,,False
+2026-11-07 15:00:00,10,Crystal Palace,Liverpool,Prem,2627,,,False
+2026-11-07 15:00:00,10,Everton,Coventry City,Prem,2627,,,False
+2026-11-07 15:00:00,10,Fulham,Newcastle United,Prem,2627,,,False
+2026-11-07 15:00:00,10,Ipswich Town,Bournemouth,Prem,2627,,,False
+2026-11-07 15:00:00,10,Leeds United,Tottenham Hotspur,Prem,2627,,,False
+2026-11-07 15:00:00,10,Manchester United,Aston Villa,Prem,2627,,,False
+2026-11-07 15:00:00,10,Nottingham Forest,Manchester City,Prem,2627,,,False
+2026-11-07 15:00:00,10,Sunderland,Chelsea,Prem,2627,,,False
+2026-11-21 15:00:00,11,Aston Villa,Sunderland,Prem,2627,,,False
+2026-11-21 15:00:00,11,Bournemouth,Nottingham Forest,Prem,2627,,,False
+2026-11-21 15:00:00,11,Brentford,Everton,Prem,2627,,,False
+2026-11-21 15:00:00,11,Chelsea,Leeds United,Prem,2627,,,False
+2026-11-21 15:00:00,11,Coventry City,Crystal Palace,Prem,2627,,,False
+2026-11-21 15:00:00,11,Hull City,Brighton,Prem,2627,,,False
+2026-11-21 15:00:00,11,Liverpool,Manchester United,Prem,2627,,,False
+2026-11-21 15:00:00,11,Manchester City,Fulham,Prem,2627,,,False
+2026-11-21 15:00:00,11,Newcastle United,Arsenal,Prem,2627,,,False
+2026-11-21 15:00:00,11,Tottenham Hotspur,Ipswich Town,Prem,2627,,,False
+2026-11-28 15:00:00,12,Arsenal,Manchester City,Prem,2627,,,False
+2026-11-28 15:00:00,12,Brighton,Newcastle United,Prem,2627,,,False
+2026-11-28 15:00:00,12,Crystal Palace,Hull City,Prem,2627,,,False
+2026-11-28 15:00:00,12,Everton,Liverpool,Prem,2627,,,False
+2026-11-28 15:00:00,12,Fulham,Bournemouth,Prem,2627,,,False
+2026-11-28 15:00:00,12,Ipswich Town,Aston Villa,Prem,2627,,,False
+2026-11-28 15:00:00,12,Leeds United,Coventry City,Prem,2627,,,False
+2026-11-28 15:00:00,12,Manchester United,Brentford,Prem,2627,,,False
+2026-11-28 15:00:00,12,Nottingham Forest,Chelsea,Prem,2627,,,False
+2026-11-28 15:00:00,12,Sunderland,Tottenham Hotspur,Prem,2627,,,False
+2026-12-02 20:00:00,13,Aston Villa,Everton,Prem,2627,,,False
+2026-12-02 20:00:00,13,Bournemouth,Brighton,Prem,2627,,,False
+2026-12-02 20:00:00,13,Brentford,Arsenal,Prem,2627,,,False
+2026-12-02 20:00:00,13,Chelsea,Crystal Palace,Prem,2627,,,False
+2026-12-02 20:00:00,13,Coventry City,Ipswich Town,Prem,2627,,,False
+2026-12-02 20:00:00,13,Hull City,Nottingham Forest,Prem,2627,,,False
+2026-12-02 20:00:00,13,Liverpool,Sunderland,Prem,2627,,,False
+2026-12-02 20:00:00,13,Manchester City,Leeds United,Prem,2627,,,False
+2026-12-02 20:00:00,13,Newcastle United,Manchester United,Prem,2627,,,False
+2026-12-02 20:00:00,13,Tottenham Hotspur,Fulham,Prem,2627,,,False
+2026-12-05 15:00:00,14,Aston Villa,Crystal Palace,Prem,2627,,,False
+2026-12-05 15:00:00,14,Bournemouth,Hull City,Prem,2627,,,False
+2026-12-05 15:00:00,14,Brentford,Manchester City,Prem,2627,,,False
+2026-12-05 15:00:00,14,Chelsea,Liverpool,Prem,2627,,,False
+2026-12-05 15:00:00,14,Everton,Fulham,Prem,2627,,,False
+2026-12-05 15:00:00,14,Leeds United,Ipswich Town,Prem,2627,,,False
+2026-12-05 15:00:00,14,Manchester United,Coventry City,Prem,2627,,,False
+2026-12-05 15:00:00,14,Newcastle United,Sunderland,Prem,2627,,,False
+2026-12-05 15:00:00,14,Nottingham Forest,Brighton,Prem,2627,,,False
+2026-12-05 15:00:00,14,Tottenham Hotspur,Arsenal,Prem,2627,,,False
+2026-12-12 15:00:00,15,Arsenal,Bournemouth,Prem,2627,,,False
+2026-12-12 15:00:00,15,Brighton,Everton,Prem,2627,,,False
+2026-12-12 15:00:00,15,Coventry City,Aston Villa,Prem,2627,,,False
+2026-12-12 15:00:00,15,Crystal Palace,Manchester United,Prem,2627,,,False
+2026-12-12 15:00:00,15,Fulham,Brentford,Prem,2627,,,False
+2026-12-12 15:00:00,15,Hull City,Tottenham Hotspur,Prem,2627,,,False
+2026-12-12 15:00:00,15,Ipswich Town,Newcastle United,Prem,2627,,,False
+2026-12-12 15:00:00,15,Liverpool,Leeds United,Prem,2627,,,False
+2026-12-12 15:00:00,15,Manchester City,Chelsea,Prem,2627,,,False
+2026-12-12 15:00:00,15,Sunderland,Nottingham Forest,Prem,2627,,,False
+2026-12-19 15:00:00,16,Arsenal,Manchester United,Prem,2627,,,False
+2026-12-19 15:00:00,16,Bournemouth,Coventry City,Prem,2627,,,False
+2026-12-19 15:00:00,16,Brentford,Newcastle United,Prem,2627,,,False
+2026-12-19 15:00:00,16,Brighton,Ipswich Town,Prem,2627,,,False
+2026-12-19 15:00:00,16,Chelsea,Aston Villa,Prem,2627,,,False
+2026-12-19 15:00:00,16,Leeds United,Fulham,Prem,2627,,,False
+2026-12-19 15:00:00,16,Liverpool,Tottenham Hotspur,Prem,2627,,,False
+2026-12-19 15:00:00,16,Manchester City,Hull City,Prem,2627,,,False
+2026-12-19 15:00:00,16,Nottingham Forest,Everton,Prem,2627,,,False
+2026-12-19 15:00:00,16,Sunderland,Crystal Palace,Prem,2627,,,False
+2026-12-26 15:00:00,17,Aston Villa,Leeds United,Prem,2627,,,False
+2026-12-26 15:00:00,17,Coventry City,Chelsea,Prem,2627,,,False
+2026-12-26 15:00:00,17,Crystal Palace,Arsenal,Prem,2627,,,False
+2026-12-26 15:00:00,17,Everton,Sunderland,Prem,2627,,,False
+2026-12-26 15:00:00,17,Fulham,Brighton,Prem,2627,,,False
+2026-12-26 15:00:00,17,Hull City,Liverpool,Prem,2627,,,False
+2026-12-26 15:00:00,17,Ipswich Town,Brentford,Prem,2627,,,False
+2026-12-26 15:00:00,17,Manchester United,Nottingham Forest,Prem,2627,,,False
+2026-12-26 15:00:00,17,Newcastle United,Manchester City,Prem,2627,,,False
+2026-12-26 15:00:00,17,Tottenham Hotspur,Bournemouth,Prem,2627,,,False
+2026-12-30 20:00:00,18,Aston Villa,Liverpool,Prem,2627,,,False
+2026-12-30 20:00:00,18,Coventry City,Brentford,Prem,2627,,,False
+2026-12-30 20:00:00,18,Crystal Palace,Bournemouth,Prem,2627,,,False
+2026-12-30 20:00:00,18,Everton,Manchester City,Prem,2627,,,False
+2026-12-30 20:00:00,18,Fulham,Arsenal,Prem,2627,,,False
+2026-12-30 20:00:00,18,Hull City,Leeds United,Prem,2627,,,False
+2026-12-30 20:00:00,18,Ipswich Town,Chelsea,Prem,2627,,,False
+2026-12-30 20:00:00,18,Manchester United,Sunderland,Prem,2627,,,False
+2026-12-30 20:00:00,18,Newcastle United,Nottingham Forest,Prem,2627,,,False
+2026-12-30 20:00:00,18,Tottenham Hotspur,Brighton,Prem,2627,,,False
+2027-01-02 15:00:00,19,Arsenal,Ipswich Town,Prem,2627,,,False
+2027-01-02 15:00:00,19,Bournemouth,Aston Villa,Prem,2627,,,False
+2027-01-02 15:00:00,19,Brentford,Crystal Palace,Prem,2627,,,False
+2027-01-02 15:00:00,19,Brighton,Manchester United,Prem,2627,,,False
+2027-01-02 15:00:00,19,Chelsea,Newcastle United,Prem,2627,,,False
+2027-01-02 15:00:00,19,Leeds United,Everton,Prem,2627,,,False
+2027-01-02 15:00:00,19,Liverpool,Coventry City,Prem,2627,,,False
+2027-01-02 15:00:00,19,Manchester City,Tottenham Hotspur,Prem,2627,,,False
+2027-01-02 15:00:00,19,Nottingham Forest,Fulham,Prem,2627,,,False
+2027-01-02 15:00:00,19,Sunderland,Hull City,Prem,2627,,,False
+2027-01-06 20:00:00,20,Arsenal,Brentford,Prem,2627,,,False
+2027-01-06 20:00:00,20,Brighton,Bournemouth,Prem,2627,,,False
+2027-01-06 20:00:00,20,Crystal Palace,Chelsea,Prem,2627,,,False
+2027-01-06 20:00:00,20,Everton,Aston Villa,Prem,2627,,,False
+2027-01-06 20:00:00,20,Fulham,Tottenham Hotspur,Prem,2627,,,False
+2027-01-06 20:00:00,20,Ipswich Town,Coventry City,Prem,2627,,,False
+2027-01-06 20:00:00,20,Leeds United,Manchester City,Prem,2627,,,False
+2027-01-06 20:00:00,20,Manchester United,Newcastle United,Prem,2627,,,False
+2027-01-06 20:00:00,20,Nottingham Forest,Hull City,Prem,2627,,,False
+2027-01-06 20:00:00,20,Sunderland,Liverpool,Prem,2627,,,False
+2027-01-16 15:00:00,21,Aston Villa,Manchester United,Prem,2627,,,False
+2027-01-16 15:00:00,21,Bournemouth,Ipswich Town,Prem,2627,,,False
+2027-01-16 15:00:00,21,Brentford,Brighton,Prem,2627,,,False
+2027-01-16 15:00:00,21,Chelsea,Sunderland,Prem,2627,,,False
+2027-01-16 15:00:00,21,Coventry City,Everton,Prem,2627,,,False
+2027-01-16 15:00:00,21,Hull City,Arsenal,Prem,2627,,,False
+2027-01-16 15:00:00,21,Liverpool,Crystal Palace,Prem,2627,,,False
+2027-01-16 15:00:00,21,Manchester City,Nottingham Forest,Prem,2627,,,False
+2027-01-16 15:00:00,21,Newcastle United,Fulham,Prem,2627,,,False
+2027-01-16 15:00:00,21,Tottenham Hotspur,Leeds United,Prem,2627,,,False
+2027-01-23 15:00:00,22,Arsenal,Newcastle United,Prem,2627,,,False
+2027-01-23 15:00:00,22,Brighton,Manchester City,Prem,2627,,,False
+2027-01-23 15:00:00,22,Crystal Palace,Tottenham Hotspur,Prem,2627,,,False
+2027-01-23 15:00:00,22,Everton,Brentford,Prem,2627,,,False
+2027-01-23 15:00:00,22,Fulham,Aston Villa,Prem,2627,,,False
+2027-01-23 15:00:00,22,Ipswich Town,Hull City,Prem,2627,,,False
+2027-01-23 15:00:00,22,Leeds United,Chelsea,Prem,2627,,,False
+2027-01-23 15:00:00,22,Manchester United,Liverpool,Prem,2627,,,False
+2027-01-23 15:00:00,22,Nottingham Forest,Bournemouth,Prem,2627,,,False
+2027-01-23 15:00:00,22,Sunderland,Coventry City,Prem,2627,,,False
+2027-01-30 15:00:00,23,Aston Villa,Ipswich Town,Prem,2627,,,False
+2027-01-30 15:00:00,23,Bournemouth,Fulham,Prem,2627,,,False
+2027-01-30 15:00:00,23,Brentford,Manchester United,Prem,2627,,,False
+2027-01-30 15:00:00,23,Chelsea,Nottingham Forest,Prem,2627,,,False
+2027-01-30 15:00:00,23,Coventry City,Leeds United,Prem,2627,,,False
+2027-01-30 15:00:00,23,Hull City,Crystal Palace,Prem,2627,,,False
+2027-01-30 15:00:00,23,Liverpool,Everton,Prem,2627,,,False
+2027-01-30 15:00:00,23,Manchester City,Arsenal,Prem,2627,,,False
+2027-01-30 15:00:00,23,Newcastle United,Brighton,Prem,2627,,,False
+2027-01-30 15:00:00,23,Tottenham Hotspur,Sunderland,Prem,2627,,,False
+2027-02-06 15:00:00,24,Arsenal,Liverpool,Prem,2627,,,False
+2027-02-06 15:00:00,24,Brighton,Hull City,Prem,2627,,,False
+2027-02-06 15:00:00,24,Crystal Palace,Coventry City,Prem,2627,,,False
+2027-02-06 15:00:00,24,Everton,Newcastle United,Prem,2627,,,False
+2027-02-06 15:00:00,24,Fulham,Manchester City,Prem,2627,,,False
+2027-02-06 15:00:00,24,Ipswich Town,Tottenham Hotspur,Prem,2627,,,False
+2027-02-06 15:00:00,24,Leeds United,Bournemouth,Prem,2627,,,False
+2027-02-06 15:00:00,24,Manchester United,Chelsea,Prem,2627,,,False
+2027-02-06 15:00:00,24,Nottingham Forest,Brentford,Prem,2627,,,False
+2027-02-06 15:00:00,24,Sunderland,Aston Villa,Prem,2627,,,False
+2027-02-10 20:00:00,25,Aston Villa,Bournemouth,Prem,2627,,,False
+2027-02-10 20:00:00,25,Coventry City,Liverpool,Prem,2627,,,False
+2027-02-10 20:00:00,25,Crystal Palace,Brentford,Prem,2627,,,False
+2027-02-10 20:00:00,25,Everton,Leeds United,Prem,2627,,,False
+2027-02-10 20:00:00,25,Fulham,Nottingham Forest,Prem,2627,,,False
+2027-02-10 20:00:00,25,Hull City,Sunderland,Prem,2627,,,False
+2027-02-10 20:00:00,25,Ipswich Town,Arsenal,Prem,2627,,,False
+2027-02-10 20:00:00,25,Manchester United,Brighton,Prem,2627,,,False
+2027-02-10 20:00:00,25,Newcastle United,Chelsea,Prem,2627,,,False
+2027-02-10 20:00:00,25,Tottenham Hotspur,Manchester City,Prem,2627,,,False
+2027-02-20 15:00:00,26,Arsenal,Fulham,Prem,2627,,,False
+2027-02-20 15:00:00,26,Bournemouth,Crystal Palace,Prem,2627,,,False
+2027-02-20 15:00:00,26,Brentford,Coventry City,Prem,2627,,,False
+2027-02-20 15:00:00,26,Brighton,Tottenham Hotspur,Prem,2627,,,False
+2027-02-20 15:00:00,26,Chelsea,Ipswich Town,Prem,2627,,,False
+2027-02-20 15:00:00,26,Leeds United,Aston Villa,Prem,2627,,,False
+2027-02-20 15:00:00,26,Liverpool,Hull City,Prem,2627,,,False
+2027-02-20 15:00:00,26,Manchester City,Newcastle United,Prem,2627,,,False
+2027-02-20 15:00:00,26,Nottingham Forest,Manchester United,Prem,2627,,,False
+2027-02-20 15:00:00,26,Sunderland,Everton,Prem,2627,,,False
+2027-02-27 15:00:00,27,Aston Villa,Chelsea,Prem,2627,,,False
+2027-02-27 15:00:00,27,Coventry City,Bournemouth,Prem,2627,,,False
+2027-02-27 15:00:00,27,Crystal Palace,Sunderland,Prem,2627,,,False
+2027-02-27 15:00:00,27,Everton,Nottingham Forest,Prem,2627,,,False
+2027-02-27 15:00:00,27,Fulham,Leeds United,Prem,2627,,,False
+2027-02-27 15:00:00,27,Hull City,Manchester City,Prem,2627,,,False
+2027-02-27 15:00:00,27,Ipswich Town,Brighton,Prem,2627,,,False
+2027-02-27 15:00:00,27,Manchester United,Arsenal,Prem,2627,,,False
+2027-02-27 15:00:00,27,Newcastle United,Brentford,Prem,2627,,,False
+2027-02-27 15:00:00,27,Tottenham Hotspur,Liverpool,Prem,2627,,,False
+2027-03-03 20:00:00,28,Arsenal,Crystal Palace,Prem,2627,,,False
+2027-03-03 20:00:00,28,Bournemouth,Tottenham Hotspur,Prem,2627,,,False
+2027-03-03 20:00:00,28,Brentford,Ipswich Town,Prem,2627,,,False
+2027-03-03 20:00:00,28,Brighton,Fulham,Prem,2627,,,False
+2027-03-03 20:00:00,28,Chelsea,Coventry City,Prem,2627,,,False
+2027-03-03 20:00:00,28,Leeds United,Hull City,Prem,2627,,,False
+2027-03-03 20:00:00,28,Liverpool,Aston Villa,Prem,2627,,,False
+2027-03-03 20:00:00,28,Manchester City,Everton,Prem,2627,,,False
+2027-03-03 20:00:00,28,Nottingham Forest,Newcastle United,Prem,2627,,,False
+2027-03-03 20:00:00,28,Sunderland,Manchester United,Prem,2627,,,False
+2027-03-13 15:00:00,29,Aston Villa,Hull City,Prem,2627,,,False
+2027-03-13 15:00:00,29,Bournemouth,Newcastle United,Prem,2627,,,False
+2027-03-13 15:00:00,29,Chelsea,Arsenal,Prem,2627,,,False
+2027-03-13 15:00:00,29,Coventry City,Manchester City,Prem,2627,,,False
+2027-03-13 15:00:00,29,Crystal Palace,Fulham,Prem,2627,,,False
+2027-03-13 15:00:00,29,Leeds United,Brighton,Prem,2627,,,False
+2027-03-13 15:00:00,29,Liverpool,Ipswich Town,Prem,2627,,,False
+2027-03-13 15:00:00,29,Manchester United,Everton,Prem,2627,,,False
+2027-03-13 15:00:00,29,Sunderland,Brentford,Prem,2627,,,False
+2027-03-13 15:00:00,29,Tottenham Hotspur,Nottingham Forest,Prem,2627,,,False
+2027-03-20 15:00:00,30,Arsenal,Sunderland,Prem,2627,,,False
+2027-03-20 15:00:00,30,Brentford,Bournemouth,Prem,2627,,,False
+2027-03-20 15:00:00,30,Brighton,Coventry City,Prem,2627,,,False
+2027-03-20 15:00:00,30,Everton,Tottenham Hotspur,Prem,2627,,,False
+2027-03-20 15:00:00,30,Fulham,Liverpool,Prem,2627,,,False
+2027-03-20 15:00:00,30,Hull City,Chelsea,Prem,2627,,,False
+2027-03-20 15:00:00,30,Ipswich Town,Crystal Palace,Prem,2627,,,False
+2027-03-20 15:00:00,30,Manchester City,Manchester United,Prem,2627,,,False
+2027-03-20 15:00:00,30,Newcastle United,Leeds United,Prem,2627,,,False
+2027-03-20 15:00:00,30,Nottingham Forest,Aston Villa,Prem,2627,,,False
+2027-04-10 14:00:00,31,Aston Villa,Brighton,Prem,2627,,,False
+2027-04-10 14:00:00,31,Bournemouth,Manchester City,Prem,2627,,,False
+2027-04-10 14:00:00,31,Chelsea,Fulham,Prem,2627,,,False
+2027-04-10 14:00:00,31,Coventry City,Arsenal,Prem,2627,,,False
+2027-04-10 14:00:00,31,Crystal Palace,Everton,Prem,2627,,,False
+2027-04-10 14:00:00,31,Leeds United,Nottingham Forest,Prem,2627,,,False
+2027-04-10 14:00:00,31,Liverpool,Newcastle United,Prem,2627,,,False
+2027-04-10 14:00:00,31,Manchester United,Hull City,Prem,2627,,,False
+2027-04-10 14:00:00,31,Sunderland,Ipswich Town,Prem,2627,,,False
+2027-04-10 14:00:00,31,Tottenham Hotspur,Brentford,Prem,2627,,,False
+2027-04-17 14:00:00,32,Arsenal,Aston Villa,Prem,2627,,,False
+2027-04-17 14:00:00,32,Brentford,Leeds United,Prem,2627,,,False
+2027-04-17 14:00:00,32,Brighton,Chelsea,Prem,2627,,,False
+2027-04-17 14:00:00,32,Everton,Bournemouth,Prem,2627,,,False
+2027-04-17 14:00:00,32,Fulham,Sunderland,Prem,2627,,,False
+2027-04-17 14:00:00,32,Hull City,Coventry City,Prem,2627,,,False
+2027-04-17 14:00:00,32,Ipswich Town,Manchester United,Prem,2627,,,False
+2027-04-17 14:00:00,32,Manchester City,Crystal Palace,Prem,2627,,,False
+2027-04-17 14:00:00,32,Newcastle United,Tottenham Hotspur,Prem,2627,,,False
+2027-04-17 14:00:00,32,Nottingham Forest,Liverpool,Prem,2627,,,False
+2027-04-24 14:00:00,33,Aston Villa,Coventry City,Prem,2627,,,False
+2027-04-24 14:00:00,33,Bournemouth,Arsenal,Prem,2627,,,False
+2027-04-24 14:00:00,33,Brentford,Fulham,Prem,2627,,,False
+2027-04-24 14:00:00,33,Chelsea,Manchester City,Prem,2627,,,False
+2027-04-24 14:00:00,33,Everton,Brighton,Prem,2627,,,False
+2027-04-24 14:00:00,33,Leeds United,Liverpool,Prem,2627,,,False
+2027-04-24 14:00:00,33,Manchester United,Crystal Palace,Prem,2627,,,False
+2027-04-24 14:00:00,33,Newcastle United,Ipswich Town,Prem,2627,,,False
+2027-04-24 14:00:00,33,Nottingham Forest,Sunderland,Prem,2627,,,False
+2027-04-24 14:00:00,33,Tottenham Hotspur,Hull City,Prem,2627,,,False
+2027-05-01 14:00:00,34,Arsenal,Tottenham Hotspur,Prem,2627,,,False
+2027-05-01 14:00:00,34,Brighton,Nottingham Forest,Prem,2627,,,False
+2027-05-01 14:00:00,34,Coventry City,Manchester United,Prem,2627,,,False
+2027-05-01 14:00:00,34,Crystal Palace,Aston Villa,Prem,2627,,,False
+2027-05-01 14:00:00,34,Fulham,Everton,Prem,2627,,,False
+2027-05-01 14:00:00,34,Hull City,Bournemouth,Prem,2627,,,False
+2027-05-01 14:00:00,34,Ipswich Town,Leeds United,Prem,2627,,,False
+2027-05-01 14:00:00,34,Liverpool,Chelsea,Prem,2627,,,False
+2027-05-01 14:00:00,34,Manchester City,Brentford,Prem,2627,,,False
+2027-05-01 14:00:00,34,Sunderland,Newcastle United,Prem,2627,,,False
+2027-05-08 14:00:00,35,Bournemouth,Manchester United,Prem,2627,,,False
+2027-05-08 14:00:00,35,Brentford,Aston Villa,Prem,2627,,,False
+2027-05-08 14:00:00,35,Brighton,Sunderland,Prem,2627,,,False
+2027-05-08 14:00:00,35,Everton,Hull City,Prem,2627,,,False
+2027-05-08 14:00:00,35,Fulham,Ipswich Town,Prem,2627,,,False
+2027-05-08 14:00:00,35,Leeds United,Arsenal,Prem,2627,,,False
+2027-05-08 14:00:00,35,Manchester City,Liverpool,Prem,2627,,,False
+2027-05-08 14:00:00,35,Newcastle United,Coventry City,Prem,2627,,,False
+2027-05-08 14:00:00,35,Nottingham Forest,Crystal Palace,Prem,2627,,,False
+2027-05-08 14:00:00,35,Tottenham Hotspur,Chelsea,Prem,2627,,,False
+2027-05-15 14:00:00,36,Arsenal,Nottingham Forest,Prem,2627,,,False
+2027-05-15 14:00:00,36,Aston Villa,Newcastle United,Prem,2627,,,False
+2027-05-15 14:00:00,36,Chelsea,Everton,Prem,2627,,,False
+2027-05-15 14:00:00,36,Coventry City,Tottenham Hotspur,Prem,2627,,,False
+2027-05-15 14:00:00,36,Crystal Palace,Brighton,Prem,2627,,,False
+2027-05-15 14:00:00,36,Hull City,Fulham,Prem,2627,,,False
+2027-05-15 14:00:00,36,Ipswich Town,Manchester City,Prem,2627,,,False
+2027-05-15 14:00:00,36,Liverpool,Brentford,Prem,2627,,,False
+2027-05-15 14:00:00,36,Manchester United,Leeds United,Prem,2627,,,False
+2027-05-15 14:00:00,36,Sunderland,Bournemouth,Prem,2627,,,False
+2027-05-23 14:00:00,37,Bournemouth,Chelsea,Prem,2627,,,False
+2027-05-23 14:00:00,37,Brentford,Hull City,Prem,2627,,,False
+2027-05-23 14:00:00,37,Brighton,Liverpool,Prem,2627,,,False
+2027-05-23 14:00:00,37,Everton,Arsenal,Prem,2627,,,False
+2027-05-23 14:00:00,37,Fulham,Coventry City,Prem,2627,,,False
+2027-05-23 14:00:00,37,Leeds United,Sunderland,Prem,2627,,,False
+2027-05-23 14:00:00,37,Manchester City,Aston Villa,Prem,2627,,,False
+2027-05-23 14:00:00,37,Newcastle United,Crystal Palace,Prem,2627,,,False
+2027-05-23 14:00:00,37,Nottingham Forest,Ipswich Town,Prem,2627,,,False
+2027-05-23 14:00:00,37,Tottenham Hotspur,Manchester United,Prem,2627,,,False
+2027-05-30 15:00:00,38,Arsenal,Brighton,Prem,2627,,,False
+2027-05-30 15:00:00,38,Aston Villa,Tottenham Hotspur,Prem,2627,,,False
+2027-05-30 15:00:00,38,Chelsea,Brentford,Prem,2627,,,False
+2027-05-30 15:00:00,38,Coventry City,Nottingham Forest,Prem,2627,,,False
+2027-05-30 15:00:00,38,Crystal Palace,Leeds United,Prem,2627,,,False
+2027-05-30 15:00:00,38,Hull City,Newcastle United,Prem,2627,,,False
+2027-05-30 15:00:00,38,Ipswich Town,Everton,Prem,2627,,,False
+2027-05-30 15:00:00,38,Liverpool,Bournemouth,Prem,2627,,,False
+2027-05-30 15:00:00,38,Manchester United,Fulham,Prem,2627,,,False
+2027-05-30 15:00:00,38,Sunderland,Manchester City,Prem,2627,,,False

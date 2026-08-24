@@ -1,0 +1,381 @@
+date,gameweek,home_team,away_team,league,season,home_goals,away_goals,finished
+2025-08-15,,Liverpool,Bournemouth,Prem,2526,4.0,2.0,True
+2025-08-16,,Aston Villa,Newcastle United,Prem,2526,0.0,0.0,True
+2025-08-16,,Brighton,Fulham,Prem,2526,1.0,1.0,True
+2025-08-16,,Sunderland,West Ham United,Prem,2526,3.0,0.0,True
+2025-08-16,,Tottenham Hotspur,Burnley,Prem,2526,3.0,0.0,True
+2025-08-16,,Wolverhampton Wanderers,Manchester City,Prem,2526,0.0,4.0,True
+2025-08-17,,Chelsea,Crystal Palace,Prem,2526,0.0,0.0,True
+2025-08-17,,Manchester United,Arsenal,Prem,2526,0.0,1.0,True
+2025-08-17,,Nottingham Forest,Brentford,Prem,2526,3.0,1.0,True
+2025-08-18,,Leeds United,Everton,Prem,2526,1.0,0.0,True
+2025-08-22,,West Ham United,Chelsea,Prem,2526,1.0,5.0,True
+2025-08-23,,Arsenal,Leeds United,Prem,2526,5.0,0.0,True
+2025-08-23,,Bournemouth,Wolverhampton Wanderers,Prem,2526,1.0,0.0,True
+2025-08-23,,Brentford,Aston Villa,Prem,2526,1.0,0.0,True
+2025-08-23,,Burnley,Sunderland,Prem,2526,2.0,0.0,True
+2025-08-23,,Manchester City,Tottenham Hotspur,Prem,2526,0.0,2.0,True
+2025-08-24,,Crystal Palace,Nottingham Forest,Prem,2526,1.0,1.0,True
+2025-08-24,,Everton,Brighton,Prem,2526,2.0,0.0,True
+2025-08-24,,Fulham,Manchester United,Prem,2526,1.0,1.0,True
+2025-08-25,,Newcastle United,Liverpool,Prem,2526,2.0,3.0,True
+2025-08-30,,Chelsea,Fulham,Prem,2526,2.0,0.0,True
+2025-08-30,,Leeds United,Newcastle United,Prem,2526,0.0,0.0,True
+2025-08-30,,Manchester United,Burnley,Prem,2526,3.0,2.0,True
+2025-08-30,,Sunderland,Brentford,Prem,2526,2.0,1.0,True
+2025-08-30,,Tottenham Hotspur,Bournemouth,Prem,2526,0.0,1.0,True
+2025-08-30,,Wolverhampton Wanderers,Everton,Prem,2526,2.0,3.0,True
+2025-08-31,,Aston Villa,Crystal Palace,Prem,2526,0.0,3.0,True
+2025-08-31,,Brighton,Manchester City,Prem,2526,2.0,1.0,True
+2025-08-31,,Liverpool,Arsenal,Prem,2526,1.0,0.0,True
+2025-08-31,,Nottingham Forest,West Ham United,Prem,2526,0.0,3.0,True
+2025-09-13,,Arsenal,Nottingham Forest,Prem,2526,3.0,0.0,True
+2025-09-13,,Bournemouth,Brighton,Prem,2526,2.0,1.0,True
+2025-09-13,,Brentford,Chelsea,Prem,2526,2.0,2.0,True
+2025-09-13,,Crystal Palace,Sunderland,Prem,2526,0.0,0.0,True
+2025-09-13,,Everton,Aston Villa,Prem,2526,0.0,0.0,True
+2025-09-13,,Fulham,Leeds United,Prem,2526,1.0,0.0,True
+2025-09-13,,Newcastle United,Wolverhampton Wanderers,Prem,2526,1.0,0.0,True
+2025-09-13,,West Ham United,Tottenham Hotspur,Prem,2526,0.0,3.0,True
+2025-09-14,,Burnley,Liverpool,Prem,2526,0.0,1.0,True
+2025-09-14,,Manchester City,Manchester United,Prem,2526,3.0,0.0,True
+2025-09-20,,Brighton,Tottenham Hotspur,Prem,2526,2.0,2.0,True
+2025-09-20,,Burnley,Nottingham Forest,Prem,2526,1.0,1.0,True
+2025-09-20,,Fulham,Brentford,Prem,2526,3.0,1.0,True
+2025-09-20,,Liverpool,Everton,Prem,2526,2.0,1.0,True
+2025-09-20,,Manchester United,Chelsea,Prem,2526,2.0,1.0,True
+2025-09-20,,West Ham United,Crystal Palace,Prem,2526,1.0,2.0,True
+2025-09-20,,Wolverhampton Wanderers,Leeds United,Prem,2526,1.0,3.0,True
+2025-09-21,,Arsenal,Manchester City,Prem,2526,1.0,1.0,True
+2025-09-21,,Bournemouth,Newcastle United,Prem,2526,0.0,0.0,True
+2025-09-21,,Sunderland,Aston Villa,Prem,2526,1.0,1.0,True
+2025-09-27,,Brentford,Manchester United,Prem,2526,3.0,1.0,True
+2025-09-27,,Chelsea,Brighton,Prem,2526,1.0,3.0,True
+2025-09-27,,Crystal Palace,Liverpool,Prem,2526,2.0,1.0,True
+2025-09-27,,Leeds United,Bournemouth,Prem,2526,2.0,2.0,True
+2025-09-27,,Manchester City,Burnley,Prem,2526,5.0,1.0,True
+2025-09-27,,Nottingham Forest,Sunderland,Prem,2526,0.0,1.0,True
+2025-09-27,,Tottenham Hotspur,Wolverhampton Wanderers,Prem,2526,1.0,1.0,True
+2025-09-28,,Aston Villa,Fulham,Prem,2526,3.0,1.0,True
+2025-09-28,,Newcastle United,Arsenal,Prem,2526,1.0,2.0,True
+2025-09-29,,Everton,West Ham United,Prem,2526,1.0,1.0,True
+2025-10-03,,Bournemouth,Fulham,Prem,2526,3.0,1.0,True
+2025-10-04,,Arsenal,West Ham United,Prem,2526,2.0,0.0,True
+2025-10-04,,Chelsea,Liverpool,Prem,2526,2.0,1.0,True
+2025-10-04,,Leeds United,Tottenham Hotspur,Prem,2526,1.0,2.0,True
+2025-10-04,,Manchester United,Sunderland,Prem,2526,2.0,0.0,True
+2025-10-05,,Aston Villa,Burnley,Prem,2526,2.0,1.0,True
+2025-10-05,,Brentford,Manchester City,Prem,2526,0.0,1.0,True
+2025-10-05,,Everton,Crystal Palace,Prem,2526,2.0,1.0,True
+2025-10-05,,Newcastle United,Nottingham Forest,Prem,2526,2.0,0.0,True
+2025-10-05,,Wolverhampton Wanderers,Brighton,Prem,2526,1.0,1.0,True
+2025-10-18,,Brighton,Newcastle United,Prem,2526,2.0,1.0,True
+2025-10-18,,Burnley,Leeds United,Prem,2526,2.0,0.0,True
+2025-10-18,,Crystal Palace,Bournemouth,Prem,2526,3.0,3.0,True
+2025-10-18,,Fulham,Arsenal,Prem,2526,0.0,1.0,True
+2025-10-18,,Manchester City,Everton,Prem,2526,2.0,0.0,True
+2025-10-18,,Nottingham Forest,Chelsea,Prem,2526,0.0,3.0,True
+2025-10-18,,Sunderland,Wolverhampton Wanderers,Prem,2526,2.0,0.0,True
+2025-10-19,,Liverpool,Manchester United,Prem,2526,1.0,2.0,True
+2025-10-19,,Tottenham Hotspur,Aston Villa,Prem,2526,1.0,2.0,True
+2025-10-20,,West Ham United,Brentford,Prem,2526,0.0,2.0,True
+2025-10-24,,Leeds United,West Ham United,Prem,2526,2.0,1.0,True
+2025-10-25,,Brentford,Liverpool,Prem,2526,3.0,2.0,True
+2025-10-25,,Chelsea,Sunderland,Prem,2526,1.0,2.0,True
+2025-10-25,,Manchester United,Brighton,Prem,2526,4.0,2.0,True
+2025-10-25,,Newcastle United,Fulham,Prem,2526,2.0,1.0,True
+2025-10-26,,Arsenal,Crystal Palace,Prem,2526,1.0,0.0,True
+2025-10-26,,Aston Villa,Manchester City,Prem,2526,1.0,0.0,True
+2025-10-26,,Bournemouth,Nottingham Forest,Prem,2526,2.0,0.0,True
+2025-10-26,,Everton,Tottenham Hotspur,Prem,2526,0.0,3.0,True
+2025-10-26,,Wolverhampton Wanderers,Burnley,Prem,2526,2.0,3.0,True
+2025-11-01,,Brighton,Leeds United,Prem,2526,3.0,0.0,True
+2025-11-01,,Burnley,Arsenal,Prem,2526,0.0,2.0,True
+2025-11-01,,Crystal Palace,Brentford,Prem,2526,2.0,0.0,True
+2025-11-01,,Fulham,Wolverhampton Wanderers,Prem,2526,3.0,0.0,True
+2025-11-01,,Liverpool,Aston Villa,Prem,2526,2.0,0.0,True
+2025-11-01,,Nottingham Forest,Manchester United,Prem,2526,2.0,2.0,True
+2025-11-01,,Tottenham Hotspur,Chelsea,Prem,2526,0.0,1.0,True
+2025-11-02,,Manchester City,Bournemouth,Prem,2526,3.0,1.0,True
+2025-11-02,,West Ham United,Newcastle United,Prem,2526,3.0,1.0,True
+2025-11-03,,Sunderland,Everton,Prem,2526,1.0,1.0,True
+2025-11-08,,Chelsea,Wolverhampton Wanderers,Prem,2526,3.0,0.0,True
+2025-11-08,,Everton,Fulham,Prem,2526,2.0,0.0,True
+2025-11-08,,Sunderland,Arsenal,Prem,2526,2.0,2.0,True
+2025-11-08,,Tottenham Hotspur,Manchester United,Prem,2526,2.0,2.0,True
+2025-11-08,,West Ham United,Burnley,Prem,2526,3.0,2.0,True
+2025-11-09,,Aston Villa,Bournemouth,Prem,2526,4.0,0.0,True
+2025-11-09,,Brentford,Newcastle United,Prem,2526,3.0,1.0,True
+2025-11-09,,Crystal Palace,Brighton,Prem,2526,0.0,0.0,True
+2025-11-09,,Manchester City,Liverpool,Prem,2526,3.0,0.0,True
+2025-11-09,,Nottingham Forest,Leeds United,Prem,2526,3.0,1.0,True
+2025-11-22,,Bournemouth,West Ham United,Prem,2526,2.0,2.0,True
+2025-11-22,,Brighton,Brentford,Prem,2526,2.0,1.0,True
+2025-11-22,,Burnley,Chelsea,Prem,2526,0.0,2.0,True
+2025-11-22,,Fulham,Sunderland,Prem,2526,1.0,0.0,True
+2025-11-22,,Liverpool,Nottingham Forest,Prem,2526,0.0,3.0,True
+2025-11-22,,Newcastle United,Manchester City,Prem,2526,2.0,1.0,True
+2025-11-22,,Wolverhampton Wanderers,Crystal Palace,Prem,2526,0.0,2.0,True
+2025-11-23,,Arsenal,Tottenham Hotspur,Prem,2526,4.0,1.0,True
+2025-11-23,,Leeds United,Aston Villa,Prem,2526,1.0,2.0,True
+2025-11-24,,Manchester United,Everton,Prem,2526,0.0,1.0,True
+2025-11-29,,Brentford,Burnley,Prem,2526,3.0,1.0,True
+2025-11-29,,Everton,Newcastle United,Prem,2526,1.0,4.0,True
+2025-11-29,,Manchester City,Leeds United,Prem,2526,3.0,2.0,True
+2025-11-29,,Sunderland,Bournemouth,Prem,2526,3.0,2.0,True
+2025-11-29,,Tottenham Hotspur,Fulham,Prem,2526,1.0,2.0,True
+2025-11-30,,Aston Villa,Wolverhampton Wanderers,Prem,2526,1.0,0.0,True
+2025-11-30,,Chelsea,Arsenal,Prem,2526,1.0,1.0,True
+2025-11-30,,Crystal Palace,Manchester United,Prem,2526,1.0,2.0,True
+2025-11-30,,Nottingham Forest,Brighton,Prem,2526,0.0,2.0,True
+2025-11-30,,West Ham United,Liverpool,Prem,2526,0.0,2.0,True
+2025-12-02,,Bournemouth,Everton,Prem,2526,0.0,1.0,True
+2025-12-02,,Fulham,Manchester City,Prem,2526,4.0,5.0,True
+2025-12-02,,Newcastle United,Tottenham Hotspur,Prem,2526,2.0,2.0,True
+2025-12-03,,Arsenal,Brentford,Prem,2526,2.0,0.0,True
+2025-12-03,,Brighton,Aston Villa,Prem,2526,3.0,4.0,True
+2025-12-03,,Burnley,Crystal Palace,Prem,2526,0.0,1.0,True
+2025-12-03,,Leeds United,Chelsea,Prem,2526,3.0,1.0,True
+2025-12-03,,Liverpool,Sunderland,Prem,2526,1.0,1.0,True
+2025-12-03,,Wolverhampton Wanderers,Nottingham Forest,Prem,2526,0.0,1.0,True
+2025-12-04,,Manchester United,West Ham United,Prem,2526,1.0,1.0,True
+2025-12-06,,Aston Villa,Arsenal,Prem,2526,2.0,1.0,True
+2025-12-06,,Bournemouth,Chelsea,Prem,2526,0.0,0.0,True
+2025-12-06,,Everton,Nottingham Forest,Prem,2526,3.0,0.0,True
+2025-12-06,,Leeds United,Liverpool,Prem,2526,3.0,3.0,True
+2025-12-06,,Manchester City,Sunderland,Prem,2526,3.0,0.0,True
+2025-12-06,,Newcastle United,Burnley,Prem,2526,2.0,1.0,True
+2025-12-06,,Tottenham Hotspur,Brentford,Prem,2526,2.0,0.0,True
+2025-12-07,,Brighton,West Ham United,Prem,2526,1.0,1.0,True
+2025-12-07,,Fulham,Crystal Palace,Prem,2526,1.0,2.0,True
+2025-12-08,,Wolverhampton Wanderers,Manchester United,Prem,2526,1.0,4.0,True
+2025-12-13,,Arsenal,Wolverhampton Wanderers,Prem,2526,2.0,1.0,True
+2025-12-13,,Burnley,Fulham,Prem,2526,2.0,3.0,True
+2025-12-13,,Chelsea,Everton,Prem,2526,2.0,0.0,True
+2025-12-13,,Liverpool,Brighton,Prem,2526,2.0,0.0,True
+2025-12-14,,Brentford,Leeds United,Prem,2526,1.0,1.0,True
+2025-12-14,,Crystal Palace,Manchester City,Prem,2526,0.0,3.0,True
+2025-12-14,,Nottingham Forest,Tottenham Hotspur,Prem,2526,3.0,0.0,True
+2025-12-14,,Sunderland,Newcastle United,Prem,2526,1.0,0.0,True
+2025-12-14,,West Ham United,Aston Villa,Prem,2526,2.0,3.0,True
+2025-12-15,,Manchester United,Bournemouth,Prem,2526,4.0,4.0,True
+2025-12-20,,Bournemouth,Burnley,Prem,2526,1.0,1.0,True
+2025-12-20,,Brighton,Sunderland,Prem,2526,0.0,0.0,True
+2025-12-20,,Everton,Arsenal,Prem,2526,0.0,1.0,True
+2025-12-20,,Leeds United,Crystal Palace,Prem,2526,4.0,1.0,True
+2025-12-20,,Manchester City,West Ham United,Prem,2526,3.0,0.0,True
+2025-12-20,,Newcastle United,Chelsea,Prem,2526,2.0,2.0,True
+2025-12-20,,Tottenham Hotspur,Liverpool,Prem,2526,1.0,2.0,True
+2025-12-20,,Wolverhampton Wanderers,Brentford,Prem,2526,0.0,2.0,True
+2025-12-21,,Aston Villa,Manchester United,Prem,2526,2.0,1.0,True
+2025-12-22,,Fulham,Nottingham Forest,Prem,2526,1.0,0.0,True
+2025-12-26,,Manchester United,Newcastle United,Prem,2526,1.0,0.0,True
+2025-12-27,,Arsenal,Brighton,Prem,2526,2.0,1.0,True
+2025-12-27,,Brentford,Bournemouth,Prem,2526,4.0,1.0,True
+2025-12-27,,Burnley,Everton,Prem,2526,0.0,0.0,True
+2025-12-27,,Chelsea,Aston Villa,Prem,2526,1.0,2.0,True
+2025-12-27,,Liverpool,Wolverhampton Wanderers,Prem,2526,2.0,1.0,True
+2025-12-27,,Nottingham Forest,Manchester City,Prem,2526,1.0,2.0,True
+2025-12-27,,West Ham United,Fulham,Prem,2526,0.0,1.0,True
+2025-12-28,,Crystal Palace,Tottenham Hotspur,Prem,2526,0.0,1.0,True
+2025-12-28,,Sunderland,Leeds United,Prem,2526,1.0,1.0,True
+2025-12-30,,Arsenal,Aston Villa,Prem,2526,4.0,1.0,True
+2025-12-30,,Burnley,Newcastle United,Prem,2526,1.0,3.0,True
+2025-12-30,,Chelsea,Bournemouth,Prem,2526,2.0,2.0,True
+2025-12-30,,Manchester United,Wolverhampton Wanderers,Prem,2526,1.0,1.0,True
+2025-12-30,,Nottingham Forest,Everton,Prem,2526,0.0,2.0,True
+2025-12-30,,West Ham United,Brighton,Prem,2526,2.0,2.0,True
+2026-01-01,,Brentford,Tottenham Hotspur,Prem,2526,0.0,0.0,True
+2026-01-01,,Crystal Palace,Fulham,Prem,2526,1.0,1.0,True
+2026-01-01,,Liverpool,Leeds United,Prem,2526,0.0,0.0,True
+2026-01-01,,Sunderland,Manchester City,Prem,2526,0.0,0.0,True
+2026-01-03,,Aston Villa,Nottingham Forest,Prem,2526,3.0,1.0,True
+2026-01-03,,Bournemouth,Arsenal,Prem,2526,2.0,3.0,True
+2026-01-03,,Brighton,Burnley,Prem,2526,2.0,0.0,True
+2026-01-03,,Wolverhampton Wanderers,West Ham United,Prem,2526,3.0,0.0,True
+2026-01-04,,Everton,Brentford,Prem,2526,2.0,4.0,True
+2026-01-04,,Fulham,Liverpool,Prem,2526,2.0,2.0,True
+2026-01-04,,Leeds United,Manchester United,Prem,2526,1.0,1.0,True
+2026-01-04,,Manchester City,Chelsea,Prem,2526,1.0,1.0,True
+2026-01-04,,Newcastle United,Crystal Palace,Prem,2526,2.0,0.0,True
+2026-01-04,,Tottenham Hotspur,Sunderland,Prem,2526,1.0,1.0,True
+2026-01-06,,West Ham United,Nottingham Forest,Prem,2526,1.0,2.0,True
+2026-01-07,,Bournemouth,Tottenham Hotspur,Prem,2526,3.0,2.0,True
+2026-01-07,,Brentford,Sunderland,Prem,2526,3.0,0.0,True
+2026-01-07,,Burnley,Manchester United,Prem,2526,2.0,2.0,True
+2026-01-07,,Crystal Palace,Aston Villa,Prem,2526,0.0,0.0,True
+2026-01-07,,Everton,Wolverhampton Wanderers,Prem,2526,1.0,1.0,True
+2026-01-07,,Fulham,Chelsea,Prem,2526,2.0,1.0,True
+2026-01-07,,Manchester City,Brighton,Prem,2526,1.0,1.0,True
+2026-01-07,,Newcastle United,Leeds United,Prem,2526,4.0,3.0,True
+2026-01-08,,Arsenal,Liverpool,Prem,2526,0.0,0.0,True
+2026-01-17,,Chelsea,Brentford,Prem,2526,2.0,0.0,True
+2026-01-17,,Leeds United,Fulham,Prem,2526,1.0,0.0,True
+2026-01-17,,Liverpool,Burnley,Prem,2526,1.0,1.0,True
+2026-01-17,,Manchester United,Manchester City,Prem,2526,2.0,0.0,True
+2026-01-17,,Nottingham Forest,Arsenal,Prem,2526,0.0,0.0,True
+2026-01-17,,Sunderland,Crystal Palace,Prem,2526,2.0,1.0,True
+2026-01-17,,Tottenham Hotspur,West Ham United,Prem,2526,1.0,2.0,True
+2026-01-18,,Aston Villa,Everton,Prem,2526,0.0,1.0,True
+2026-01-18,,Wolverhampton Wanderers,Newcastle United,Prem,2526,0.0,0.0,True
+2026-01-19,,Brighton,Bournemouth,Prem,2526,1.0,1.0,True
+2026-01-24,,Bournemouth,Liverpool,Prem,2526,3.0,2.0,True
+2026-01-24,,Burnley,Tottenham Hotspur,Prem,2526,2.0,2.0,True
+2026-01-24,,Fulham,Brighton,Prem,2526,2.0,1.0,True
+2026-01-24,,Manchester City,Wolverhampton Wanderers,Prem,2526,2.0,0.0,True
+2026-01-24,,West Ham United,Sunderland,Prem,2526,3.0,1.0,True
+2026-01-25,,Arsenal,Manchester United,Prem,2526,2.0,3.0,True
+2026-01-25,,Brentford,Nottingham Forest,Prem,2526,0.0,2.0,True
+2026-01-25,,Crystal Palace,Chelsea,Prem,2526,1.0,3.0,True
+2026-01-25,,Newcastle United,Aston Villa,Prem,2526,0.0,2.0,True
+2026-01-26,,Everton,Leeds United,Prem,2526,1.0,1.0,True
+2026-01-31,,Brighton,Everton,Prem,2526,1.0,1.0,True
+2026-01-31,,Chelsea,West Ham United,Prem,2526,3.0,2.0,True
+2026-01-31,,Leeds United,Arsenal,Prem,2526,0.0,4.0,True
+2026-01-31,,Liverpool,Newcastle United,Prem,2526,4.0,1.0,True
+2026-01-31,,Wolverhampton Wanderers,Bournemouth,Prem,2526,0.0,2.0,True
+2026-02-01,,Aston Villa,Brentford,Prem,2526,0.0,1.0,True
+2026-02-01,,Manchester United,Fulham,Prem,2526,3.0,2.0,True
+2026-02-01,,Nottingham Forest,Crystal Palace,Prem,2526,1.0,1.0,True
+2026-02-01,,Tottenham Hotspur,Manchester City,Prem,2526,2.0,2.0,True
+2026-02-02,,Sunderland,Burnley,Prem,2526,3.0,0.0,True
+2026-02-06,,Leeds United,Nottingham Forest,Prem,2526,3.0,1.0,True
+2026-02-07,,Arsenal,Sunderland,Prem,2526,3.0,0.0,True
+2026-02-07,,Bournemouth,Aston Villa,Prem,2526,1.0,1.0,True
+2026-02-07,,Burnley,West Ham United,Prem,2526,0.0,2.0,True
+2026-02-07,,Fulham,Everton,Prem,2526,1.0,2.0,True
+2026-02-07,,Manchester United,Tottenham Hotspur,Prem,2526,2.0,0.0,True
+2026-02-07,,Newcastle United,Brentford,Prem,2526,2.0,3.0,True
+2026-02-07,,Wolverhampton Wanderers,Chelsea,Prem,2526,1.0,3.0,True
+2026-02-08,,Brighton,Crystal Palace,Prem,2526,0.0,1.0,True
+2026-02-08,,Liverpool,Manchester City,Prem,2526,1.0,2.0,True
+2026-02-10,,Chelsea,Leeds United,Prem,2526,2.0,2.0,True
+2026-02-10,,Everton,Bournemouth,Prem,2526,1.0,2.0,True
+2026-02-10,,Tottenham Hotspur,Newcastle United,Prem,2526,1.0,2.0,True
+2026-02-10,,West Ham United,Manchester United,Prem,2526,1.0,1.0,True
+2026-02-11,,Aston Villa,Brighton,Prem,2526,1.0,0.0,True
+2026-02-11,,Crystal Palace,Burnley,Prem,2526,2.0,3.0,True
+2026-02-11,,Manchester City,Fulham,Prem,2526,3.0,0.0,True
+2026-02-11,,Nottingham Forest,Wolverhampton Wanderers,Prem,2526,0.0,0.0,True
+2026-02-11,,Sunderland,Liverpool,Prem,2526,0.0,1.0,True
+2026-02-12,,Brentford,Arsenal,Prem,2526,1.0,1.0,True
+2026-02-18,,Wolverhampton Wanderers,Arsenal,Prem,2526,2.0,2.0,True
+2026-02-21,,Aston Villa,Leeds United,Prem,2526,1.0,1.0,True
+2026-02-21,,Brentford,Brighton,Prem,2526,0.0,2.0,True
+2026-02-21,,Chelsea,Burnley,Prem,2526,1.0,1.0,True
+2026-02-21,,Manchester City,Newcastle United,Prem,2526,2.0,1.0,True
+2026-02-21,,West Ham United,Bournemouth,Prem,2526,0.0,0.0,True
+2026-02-22,,Crystal Palace,Wolverhampton Wanderers,Prem,2526,1.0,0.0,True
+2026-02-22,,Nottingham Forest,Liverpool,Prem,2526,0.0,1.0,True
+2026-02-22,,Sunderland,Fulham,Prem,2526,1.0,3.0,True
+2026-02-22,,Tottenham Hotspur,Arsenal,Prem,2526,1.0,4.0,True
+2026-02-23,,Everton,Manchester United,Prem,2526,0.0,1.0,True
+2026-02-27,,Wolverhampton Wanderers,Aston Villa,Prem,2526,2.0,0.0,True
+2026-02-28,,Bournemouth,Sunderland,Prem,2526,1.0,1.0,True
+2026-02-28,,Burnley,Brentford,Prem,2526,3.0,4.0,True
+2026-02-28,,Leeds United,Manchester City,Prem,2526,0.0,1.0,True
+2026-02-28,,Liverpool,West Ham United,Prem,2526,5.0,2.0,True
+2026-02-28,,Newcastle United,Everton,Prem,2526,2.0,3.0,True
+2026-03-01,,Arsenal,Chelsea,Prem,2526,2.0,1.0,True
+2026-03-01,,Brighton,Nottingham Forest,Prem,2526,2.0,1.0,True
+2026-03-01,,Fulham,Tottenham Hotspur,Prem,2526,2.0,1.0,True
+2026-03-01,,Manchester United,Crystal Palace,Prem,2526,2.0,1.0,True
+2026-03-03,,Bournemouth,Brentford,Prem,2526,0.0,0.0,True
+2026-03-03,,Everton,Burnley,Prem,2526,2.0,0.0,True
+2026-03-03,,Leeds United,Sunderland,Prem,2526,0.0,1.0,True
+2026-03-03,,Wolverhampton Wanderers,Liverpool,Prem,2526,2.0,1.0,True
+2026-03-04,,Aston Villa,Chelsea,Prem,2526,1.0,4.0,True
+2026-03-04,,Brighton,Arsenal,Prem,2526,0.0,1.0,True
+2026-03-04,,Fulham,West Ham United,Prem,2526,0.0,1.0,True
+2026-03-04,,Manchester City,Nottingham Forest,Prem,2526,2.0,2.0,True
+2026-03-04,,Newcastle United,Manchester United,Prem,2526,2.0,1.0,True
+2026-03-05,,Tottenham Hotspur,Crystal Palace,Prem,2526,1.0,3.0,True
+2026-03-14,,Arsenal,Everton,Prem,2526,2.0,0.0,True
+2026-03-14,,Burnley,Bournemouth,Prem,2526,0.0,0.0,True
+2026-03-14,,Chelsea,Newcastle United,Prem,2526,0.0,1.0,True
+2026-03-14,,Sunderland,Brighton,Prem,2526,0.0,1.0,True
+2026-03-14,,West Ham United,Manchester City,Prem,2526,1.0,1.0,True
+2026-03-15,,Crystal Palace,Leeds United,Prem,2526,0.0,0.0,True
+2026-03-15,,Liverpool,Tottenham Hotspur,Prem,2526,1.0,1.0,True
+2026-03-15,,Manchester United,Aston Villa,Prem,2526,3.0,1.0,True
+2026-03-15,,Nottingham Forest,Fulham,Prem,2526,0.0,0.0,True
+2026-03-16,,Brentford,Wolverhampton Wanderers,Prem,2526,2.0,2.0,True
+2026-03-20,,Bournemouth,Manchester United,Prem,2526,2.0,2.0,True
+2026-03-21,,Brighton,Liverpool,Prem,2526,2.0,1.0,True
+2026-03-21,,Everton,Chelsea,Prem,2526,3.0,0.0,True
+2026-03-21,,Fulham,Burnley,Prem,2526,3.0,1.0,True
+2026-03-21,,Leeds United,Brentford,Prem,2526,0.0,0.0,True
+2026-03-22,,Aston Villa,West Ham United,Prem,2526,2.0,0.0,True
+2026-03-22,,Newcastle United,Sunderland,Prem,2526,1.0,2.0,True
+2026-03-22,,Tottenham Hotspur,Nottingham Forest,Prem,2526,0.0,3.0,True
+2026-04-10,,West Ham United,Wolverhampton Wanderers,Prem,2526,4.0,0.0,True
+2026-04-11,,Arsenal,Bournemouth,Prem,2526,1.0,2.0,True
+2026-04-11,,Brentford,Everton,Prem,2526,2.0,2.0,True
+2026-04-11,,Burnley,Brighton,Prem,2526,0.0,2.0,True
+2026-04-11,,Liverpool,Fulham,Prem,2526,2.0,0.0,True
+2026-04-12,,Chelsea,Manchester City,Prem,2526,0.0,3.0,True
+2026-04-12,,Crystal Palace,Newcastle United,Prem,2526,2.0,1.0,True
+2026-04-12,,Nottingham Forest,Aston Villa,Prem,2526,1.0,1.0,True
+2026-04-12,,Sunderland,Tottenham Hotspur,Prem,2526,1.0,0.0,True
+2026-04-13,,Manchester United,Leeds United,Prem,2526,1.0,2.0,True
+2026-04-18,,Brentford,Fulham,Prem,2526,0.0,0.0,True
+2026-04-18,,Chelsea,Manchester United,Prem,2526,0.0,1.0,True
+2026-04-18,,Leeds United,Wolverhampton Wanderers,Prem,2526,3.0,0.0,True
+2026-04-18,,Newcastle United,Bournemouth,Prem,2526,1.0,2.0,True
+2026-04-18,,Tottenham Hotspur,Brighton,Prem,2526,2.0,2.0,True
+2026-04-19,,Aston Villa,Sunderland,Prem,2526,4.0,3.0,True
+2026-04-19,,Everton,Liverpool,Prem,2526,1.0,2.0,True
+2026-04-19,,Manchester City,Arsenal,Prem,2526,2.0,1.0,True
+2026-04-19,,Nottingham Forest,Burnley,Prem,2526,4.0,1.0,True
+2026-04-20,,Crystal Palace,West Ham United,Prem,2526,0.0,0.0,True
+2026-04-21,,Brighton,Chelsea,Prem,2526,3.0,0.0,True
+2026-04-22,,Bournemouth,Leeds United,Prem,2526,2.0,2.0,True
+2026-04-22,,Burnley,Manchester City,Prem,2526,0.0,1.0,True
+2026-04-24,,Sunderland,Nottingham Forest,Prem,2526,0.0,5.0,True
+2026-04-25,,Arsenal,Newcastle United,Prem,2526,1.0,0.0,True
+2026-04-25,,Fulham,Aston Villa,Prem,2526,1.0,0.0,True
+2026-04-25,,Liverpool,Crystal Palace,Prem,2526,3.0,1.0,True
+2026-04-25,,West Ham United,Everton,Prem,2526,2.0,1.0,True
+2026-04-25,,Wolverhampton Wanderers,Tottenham Hotspur,Prem,2526,0.0,1.0,True
+2026-04-27,,Manchester United,Brentford,Prem,2526,2.0,1.0,True
+2026-05-01,,Leeds United,Burnley,Prem,2526,3.0,1.0,True
+2026-05-02,,Arsenal,Fulham,Prem,2526,3.0,0.0,True
+2026-05-02,,Brentford,West Ham United,Prem,2526,3.0,0.0,True
+2026-05-02,,Newcastle United,Brighton,Prem,2526,3.0,1.0,True
+2026-05-02,,Wolverhampton Wanderers,Sunderland,Prem,2526,1.0,1.0,True
+2026-05-03,,Aston Villa,Tottenham Hotspur,Prem,2526,1.0,2.0,True
+2026-05-03,,Bournemouth,Crystal Palace,Prem,2526,3.0,0.0,True
+2026-05-03,,Manchester United,Liverpool,Prem,2526,3.0,2.0,True
+2026-05-04,,Chelsea,Nottingham Forest,Prem,2526,1.0,3.0,True
+2026-05-04,,Everton,Manchester City,Prem,2526,3.0,3.0,True
+2026-05-09,,Brighton,Wolverhampton Wanderers,Prem,2526,3.0,0.0,True
+2026-05-09,,Fulham,Bournemouth,Prem,2526,0.0,1.0,True
+2026-05-09,,Liverpool,Chelsea,Prem,2526,1.0,1.0,True
+2026-05-09,,Manchester City,Brentford,Prem,2526,3.0,0.0,True
+2026-05-09,,Sunderland,Manchester United,Prem,2526,0.0,0.0,True
+2026-05-10,,Burnley,Aston Villa,Prem,2526,2.0,2.0,True
+2026-05-10,,Crystal Palace,Everton,Prem,2526,2.0,2.0,True
+2026-05-10,,Nottingham Forest,Newcastle United,Prem,2526,1.0,1.0,True
+2026-05-10,,West Ham United,Arsenal,Prem,2526,0.0,1.0,True
+2026-05-11,,Tottenham Hotspur,Leeds United,Prem,2526,1.0,1.0,True
+2026-05-13,,Manchester City,Crystal Palace,Prem,2526,3.0,0.0,True
+2026-05-15,,Aston Villa,Liverpool,Prem,2526,4.0,2.0,True
+2026-05-17,,Brentford,Crystal Palace,Prem,2526,2.0,2.0,True
+2026-05-17,,Everton,Sunderland,Prem,2526,1.0,3.0,True
+2026-05-17,,Leeds United,Brighton,Prem,2526,1.0,0.0,True
+2026-05-17,,Manchester United,Nottingham Forest,Prem,2526,3.0,2.0,True
+2026-05-17,,Newcastle United,West Ham United,Prem,2526,3.0,1.0,True
+2026-05-17,,Wolverhampton Wanderers,Fulham,Prem,2526,1.0,1.0,True
+2026-05-18,,Arsenal,Burnley,Prem,2526,1.0,0.0,True
+2026-05-19,,Bournemouth,Manchester City,Prem,2526,1.0,1.0,True
+2026-05-19,,Chelsea,Tottenham Hotspur,Prem,2526,2.0,1.0,True
+2026-05-24,,Brighton,Manchester United,Prem,2526,0.0,3.0,True
+2026-05-24,,Burnley,Wolverhampton Wanderers,Prem,2526,1.0,1.0,True
+2026-05-24,,Crystal Palace,Arsenal,Prem,2526,1.0,2.0,True
+2026-05-24,,Fulham,Newcastle United,Prem,2526,2.0,0.0,True
+2026-05-24,,Liverpool,Brentford,Prem,2526,1.0,1.0,True
+2026-05-24,,Manchester City,Aston Villa,Prem,2526,1.0,2.0,True
+2026-05-24,,Nottingham Forest,Bournemouth,Prem,2526,1.0,1.0,True
+2026-05-24,,Sunderland,Chelsea,Prem,2526,2.0,1.0,True
+2026-05-24,,Tottenham Hotspur,Everton,Prem,2526,1.0,0.0,True
+2026-05-24,,West Ham United,Leeds United,Prem,2526,3.0,0.0,True

@@ -118,12 +118,16 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
     idx = {t: i for i, t in enumerate(teams)}
     n = len(teams)
 
+    # A fixture counts as played only if it has a RESULT, not merely a past date.
+    # Postponements are routine, and treating one as played would feed NaN goals
+    # into the table; treating a played match as remaining would double-count it.
+    has_result = season_m["home_goals"].notna() & season_m["away_goals"].notna()
     if as_of is None:
         played, remaining = season_m.iloc[:0], season_m
     else:
         as_of = pd.Timestamp(as_of)
-        played = season_m[season_m["date"] < as_of]
-        remaining = season_m[season_m["date"] >= as_of]
+        is_played = has_result & (season_m["date"] < as_of)
+        played, remaining = season_m[is_played], season_m[~is_played]
 
     if fit is None:
         fit = fit_for_league(matches, season, league)

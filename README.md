@@ -58,7 +58,10 @@ Three levels, two of them built:
 
 - **Match level** — win/draw/loss probabilities, expected goals, likeliest scoreline
 - **Team level** — Elo power ratings across two divisions and 26 seasons
-- **Season level** — Monte Carlo simulation for title/top-four/relegation *(planned)*
+- **Season level** — Monte Carlo simulation: title, top-four and relegation
+  probabilities with full points and position distributions
+- **Live** — a weekly harness that refreshes results, re-fits, re-simulates and
+  writes a dated snapshot, building a week-by-week history of how the forecast moved
 
 ---
 
@@ -79,6 +82,13 @@ teams.csv (name mapping)  ─┘                            24,232 matches
                           benchmark_elo.py                      backtest.py
                           validated vs ClubElo                  rolling, nested,
                           (Spearman 0.955)                      vs market baseline
+                                                                        │
+                                                                        ↓
+                                                                 simulate.py
+                                                                 Monte Carlo season
+                                                                        │
+                              FPL API ─→ fixtures.py ─────────────→ harness.py
+                              380 fixtures + results          weekly dated snapshot
 ```
 
 ### The Elo engine
@@ -127,19 +137,70 @@ of 267 Elo-equivalent points; the Elo engine *independently derives* 232 from
 points-per-game data by a completely different route. Two methods, one estimated and
 one measured, landing in the same place.
 
+### The season simulator
+
+Match probabilities are turned into season outcomes by sampling a full **scoreline**
+for every remaining fixture — not just a win/draw/loss — so goal difference, and
+therefore the tie-breaks that actually decide titles, come out right. 10,000 seasons
+take under a second.
+
+Its correctness is pinned to reality rather than eyeballed: with every match played
+the simulator reproduces the real final table exactly, for all 20 teams, in points
+*and* position. Simulated mean points also match analytically computed expected
+points to within 0.13 across the league.
+
+**The uncertainty was wrong at first, and fixing it mattered more than the point
+estimates.** Drawing each fixture independently assumes a team's strength is exactly
+its rating. In reality that rating is both estimated with error and wrong in ways
+that persist all season, so a side that is genuinely better than rated is better in
+all 38 matches at once. Measured on held-out seasons, only **63.9%** of actual points
+totals fell inside the predicted 10–90% band, and the probability integral transform
+rejected calibration at p = 0.012.
+
+Adding a per-team season-long strength draw — one parameter, tuned on earlier
+seasons — moved that to **75.0%** coverage with PIT p = 0.65: from *demonstrably
+overconfident* to *indistinguishable from calibrated*.
+
+### Live 2026-27 forecast
+
+`fixtures.py` pulls all 380 fixtures from the FPL API; `harness.py` re-fits,
+re-simulates and writes a dated snapshot recording the model that produced it
+(window, half-life, dispersion, git commit), so a mid-season model change is visible
+in the history instead of silently rewriting it.
+
+Validated by dry-running the whole harness over the completed 2025-26 season: the
+champion's title probability climbs 29% → 100% as results arrive, and the final
+snapshot reproduces the real table exactly. That dry run caught a real
+double-counting bug that would otherwise have corrupted every live weekly snapshot.
+
 ---
 
 ## Things that turned out to be wrong
 
 Kept here deliberately — the debugging is the part worth reading.
 
-**The Dixon-Coles correction does nothing on modern data.** ρ is fitted rather than
-hardcoded, and comes out at ~+0.006, i.e. nil. The classic 1997 motivation —
-that Poisson under-predicts low-scoring draws — does not replicate on 2020s football:
-Poisson predicts the overall draw rate to within 0.3%. The residual is also the wrong
-*shape* for the correction (0-0 over-predicted, 1-1 under-predicted, pulling ρ in
-opposite directions). Hardcoding the textbook −0.05 would have made predictions
-worse.
+**The Dixon-Coles correction drifts, so hardcoding it would be wrong.** rho is
+fitted rather than assumed, and tracking it across training windows shows it is not
+a fixed property of football at all:
+
+| Window ending | rho |
+|---|---:|
+| 2018-19 | -0.058 |
+| 2021-22 | -0.010 |
+| 2024-25 | +0.015 |
+| 2025-26 (current) | **-0.053** |
+
+The classic 1997 correction was clearly present in older data, faded to nothing
+around 2022-2025 (Poisson predicted the overall draw rate to within 0.3%), and has
+returned on the latest window -- driven by a surge in 1-1 draws, whose frequency
+rose from 0.105 to 0.140 over three seasons while the overall draw rate went from
+0.24 to 0.27.
+
+An earlier version of this README claimed the correction "does nothing on modern
+data". That was true of the window then being tested and wrong as a general
+statement. The durable lesson is the opposite of a fixed value: **hardcoding the
+textbook -0.05 would have been wrong in 2024, and hardcoding 0 would be wrong
+now.** Fitting the parameter is what lets the model follow the change.
 
 **A ridge penalty silently destroyed the main result.** Shrinking attack/defence
 toward zero also shrinks the *gap between divisions*, because Championship teams sit
@@ -205,11 +266,21 @@ Everything except `benchmark_elo.py` runs offline from data in the repo.
 | 2. Clean results loader (24,232 matches, table-verified) | ✅ |
 | 3. Elo engine (validated vs ClubElo, 0.955) | ✅ |
 | 4. Dixon-Coles model + backtest | ✅ |
-| 5. Market blend (model + odds in logit space) | planned |
-| 6. Season simulator (Monte Carlo) | planned |
-| 7. Live 2026-27 harness, weekly re-runs with snapshots | planned |
-| 8. Expected-goals layer (Understat), A/B tested on the backtest | planned |
-| 9. Player-level model (minutes, goals, assists) | planned |
+| 5. Market blend | ✅ tested — **it does not help**, see below |
+| 6. Season simulator (Monte Carlo, calibrated) | ✅ |
+| 7. Live 2026-27 harness with weekly snapshots | ✅ |
+| 8. Promoted-team ratings from transfer/squad-value data | next |
+| 9. Expected-goals layer (Understat), A/B tested on the backtest | planned |
+| 10. Player-level model (minutes, goals, assists) | planned |
+
+**Phase 5 is a negative result, kept deliberately.** Blending model probabilities
+with the market in log space was tuned out-of-sample and made things slightly
+*worse* (0.9583 against the market's 0.9578); in the Championship the optimiser set
+the model's weight to zero outright. The honest conclusion is that this model
+carries essentially no information the market lacks — so for matches with odds, use
+the odds. The project's contribution is the season-level distributions the market
+does not publish, which cannot be blended because August simulation requires
+predicting unpriced May fixtures.
 
 ---
 

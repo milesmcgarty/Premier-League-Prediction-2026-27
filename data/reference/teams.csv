@@ -17,7 +17,7 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 16,Charlton Athletic,Charlton,,,,Charlton,
 17,Chelsea,Chelsea,Chelsea FC,Chelsea,Chelsea,Chelsea,Chelsea
 18,Colchester United,Colchester,,,,,
-19,Coventry City,Coventry,,,,Coventry,
+19,Coventry City,Coventry,,,,Coventry,Coventry City
 20,Crewe Alexandra,Crewe,,,,,
 21,Crystal Palace,Crystal Palace,Crystal Palace,Crystal Palace,Crystal Palace,Crystal Palace,Crystal Palace
 22,Derby County,Derby,,,,Derby,
@@ -27,8 +27,8 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 26,Gillingham,Gillingham,,,,,
 27,Grimsby Town,Grimsby,,,,,
 28,Huddersfield Town,Huddersfield,Huddersfield Town,,,,
-29,Hull City,Hull,Hull City,,,Hull,
-30,Ipswich Town,Ipswich,Ipswich Town,Ipswich Town,Ipswich,Ipswich,
+29,Hull City,Hull,Hull City,,,Hull,Hull City
+30,Ipswich Town,Ipswich,Ipswich Town,Ipswich Town,Ipswich,Ipswich,Ipswich Town
 31,Leeds United,Leeds,Leeds United,,,Leeds,Leeds
 32,Leicester City,Leicester,Leicester City,Leicester City,Leicester,,
 33,Liverpool,Liverpool,Liverpool FC,Liverpool,Liverpool,Liverpool,Liverpool
@@ -70,3 +70,4 @@ team_id,canonical_name,football_data,transfermarkt,fbref,understat,clubelo,fpl
 69,Wrexham,Wrexham,,,,Wrexham,
 70,Wycombe Wanderers,Wycombe,,,,,
 71,Yeovil Town,Yeovil,,,,,
+72,Lincoln City,Lincoln,,,,,

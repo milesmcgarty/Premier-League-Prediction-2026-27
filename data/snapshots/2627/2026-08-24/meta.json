@@ -1,0 +1,25 @@
+{
+  "as_of": "2026-08-24T13:41:39",
+  "generated_utc": "2026-08-24T13:41:41+00:00",
+  "season": "2627",
+  "league": "Prem",
+  "n_sims": 20000,
+  "matches_played": 0,
+  "matches_remaining": 380,
+  "model": {
+    "window_seasons": 5,
+    "half_life_days": 365,
+    "strength_sd": 0.15,
+    "ridge": 0.0,
+    "intercept": 0.14616,
+    "home_adv": 0.19668,
+    "rho": -0.05283,
+    "training_matches": 4660,
+    "effective_sample_size": 1165.2,
+    "converged": true,
+    "newcomer_prior": "mean of 15 League One arrivals"
+  },
+  "git_commit": "6185fbd",
+  "match_prediction_source": "model_only",
+  "stale_fixtures": 9
+}

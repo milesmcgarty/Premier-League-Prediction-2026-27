@@ -380,7 +380,8 @@ def attach_newcomer_prior(fit, matches, train_seasons, all_matches):
     return fit
 
 
-def fit_for_league(all_matches, test_season, league, params=None):
+def fit_for_league(all_matches, test_season, league, params=None,
+                   extra=None, cutoff=None):
     """Fit the joint two-division model using `league`'s tuned hyperparameters.
 
     THE entry point for prediction. The harness and the backtest both go through
@@ -389,8 +390,19 @@ def fit_for_league(all_matches, test_season, league, params=None):
     reassembling the pipeline and drifting out of step.
     """
     p = params or LEAGUE_PARAMS[league]
-    seasons, cutoff = training_window(all_matches, test_season, p["window"])
+    seasons, auto_cutoff = training_window(all_matches, test_season, p["window"])
     train = all_matches[all_matches["season"].isin(seasons)]
+
+    # Mid-season, results already played THIS season are the most informative
+    # data available -- and because they carry the newest dates they get the
+    # heaviest time-decay weight. Excluding them (as the backtest deliberately
+    # does) would be right for evaluation and wrong for a live forecast.
+    if extra is not None and len(extra):
+        keep = [c for c in ["date", "home_team", "away_team", "home_goals",
+                            "away_goals", "league", "season"] if c in extra.columns]
+        train = pd.concat([train, extra[keep]], ignore_index=True)
+
+    cutoff = pd.Timestamp(cutoff) if cutoff is not None else auto_cutoff
     fit = fit_dixon_coles(train, cutoff=cutoff, half_life_days=p["half_life"])
     return attach_newcomer_prior(fit, train, seasons, all_matches)
 
@@ -416,12 +428,21 @@ def predict_fixtures(all_matches, fixtures, test_season):
 
 
 def training_window(all_matches, test_season, window=WINDOW_SEASONS):
-    """The `window` seasons immediately before `test_season`, plus the cutoff date."""
+    """The `window` seasons immediately before `test_season`, plus the cutoff date.
+
+    `test_season` may be a season not present in `all_matches` -- which is the
+    live case, where we are forecasting a season that has barely started. Then
+    the window is simply the most recent `window` seasons and the caller supplies
+    the cutoff.
+    """
     order = sorted(all_matches.season.unique(), key=lambda s: int(s[:2]))
-    i = order.index(test_season)
-    seasons = order[max(0, i - window):i]
-    cutoff = all_matches[all_matches.season == test_season]["date"].min()
-    return seasons, cutoff
+    if test_season in order:
+        i = order.index(test_season)
+        cutoff = all_matches[all_matches.season == test_season]["date"].min()
+    else:
+        i = len(order)
+        cutoff = all_matches["date"].max()
+    return order[max(0, i - window):i], cutoff
 
 
 if __name__ == "__main__":
