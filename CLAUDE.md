@@ -528,6 +528,57 @@ The shipped κ=0.25 came from proper nested tuning.
 Championship xG would fix this, and no free source has it. That is the single
 thing that would make this layer worth more.
 
+### Squad-value features — TESTED AND REJECTED (2026-08-24)
+
+Prompted by a good observation: the model rates Newcastle on last season's
+results and cannot see that the squad was dismantled over the summer. The
+proposal was to add player market value, form, stats and FPL price as team
+strength context. It was tested thoroughly and **does not work**. Do not rebuild
+it without reading this.
+
+**The premise is real.** Squad value (top-11 Transfermarkt, within-season z,
+271 team-seasons over 14 seasons) correlates with final points at **r = +0.762**,
+and adds to a regression that already contains the model's own expected points:
+R² 0.634 → 0.652, **+5.09 points per SD, p = 2.6e-04**. So squad value genuinely
+knows something about a SEASON that the results-based model does not.
+
+**It does not survive contact with match prediction.** Held out:
+
+    model only                            0.9858
+    model + squad value (gamma 0.04)      0.9856   (+0.0002, nothing)
+    model + market prior                  0.9790
+    model + market prior + squad value    0.9797   (WORSE)
+
+The bookmakers already price squad quality — it is their job — so once the market
+prior is applied, squad value is redundant and slightly harmful. Same shape as
+the Phase 5 blend result.
+
+**It does not help even when odds coverage is thin**, which was the obvious
+escape hatch (in mid-August only one fixture per team is priced, so the prior is
+shrunk to 1/6). Simulating that regime, squad value hurts monotonically:
+0.9927 → 0.9939 → 0.9964 → 1.0004 as gamma rises 0 → 0.02 → 0.04 → 0.06.
+
+**Squad value CHANGE — the sharper version, and the actual Newcastle case — has
+no signal whatsoever.** A team that was strong and just got weaker is precisely
+what the level cannot capture and the change should. Over 208 team-seasons:
+correlation with change in points **r = -0.008 (p = 0.91)**; controlling for last
+season's points, R² 0.460 → 0.460, coefficient **-0.11 pts per SD (p = 0.90)**.
+Likely because Transfermarkt valuations are partly REACTIVE — they follow
+results rather than lead them — and selling a star to reinvest is often net
+neutral.
+
+**Why the level correlates so strongly yet adds nothing:** the model's ratings
+already encode squad quality implicitly, because good squads have been winning.
+The increment shows up at season level (predicting a points total) but not at
+match level, which is what the model is scored on.
+
+**What WOULD change this:** the market prior is the thing that works, and it
+depends on odds existing. For a competition with no betting market, or for
+fixtures priced far in advance, squad value would be the fallback rather than a
+redundant extra. Also untested here: FPL injury/availability flags, which are
+information about the FUTURE rather than a restatement of the past — though the
+market prices those too.
+
 ---
 
 ## 6. Roadmap beyond Phase 4 (planned, not built)
