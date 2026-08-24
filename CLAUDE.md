@@ -528,6 +528,54 @@ The shipped κ=0.25 came from proper nested tuning.
 Championship xG would fix this, and no free source has it. That is the single
 thing that would make this layer worth more.
 
+### Phase 10 — key-player availability — ✅ DONE, and it WORKS (2026-08-24)
+`src/availability.py`.
+
+The same conversation that produced the rejected squad-value idea produced this
+one, and the contrast is the lesson. **Squad value restates what the model
+already knows; availability is information about the FUTURE.**
+
+**Held out, with the market prior already applied:**
+
+    model + market prior                  0.9790
+    model + market prior + availability   0.9760     (+0.0030)
+
+Positive in **8 of 9 seasons**, t = 2.97, **p = 0.018**. It also helps without
+the prior (0.9858 → 0.9830), so the two are complementary, not rival.
+
+**Why it survives where squad value did not.** The market prior is fitted ONCE on
+a season's opening fixtures. It cannot know that a key player limped off in
+November. Availability is transient and match-specific, so the prior has no
+chance to absorb it.
+
+**The historical proxy.** For each team-match, weight every player by their share
+of the team's minutes over the previous 8 games, then measure how much of that
+weight actually appeared in the team's MOST RECENT match. Only prior information
+— no leakage. Built from Transfermarkt appearances (GB1, 2012-13 on): 10,415
+team-match rows, mean 0.781. Sanity: availability differential correlates with
+the model's goal-difference residual at +0.067 (p<0.001).
+
+#### ⚠️ The two sources are on DIFFERENT scales — standardise
+
+Historical availability averages **0.781** (squads rotate); the live FPL injury
+measure averages **0.839** (most players are simply fit). Centering live values
+on the historical mean would hand every team a positive offset. `offsets(...,
+standardise=True)` z-scores against the source's own cross-sectional mean and
+spread, then rescales onto the historical spread the coefficient was tuned on.
+For the historical series this is algebraically identical, so the validated
+behaviour is unchanged.
+
+#### ⚠️ A bug worth remembering: adjustments that accumulate
+
+The first version of this test reassigned `fit.adjustments` INSIDE the per-match
+loop, so offsets compounded across all 380 matches of a season. A coefficient
+worth ±0.01 appeared to move log loss by 0.008 and then diverge to NaN — and the
+tuner "correctly" chose zero, which would have buried a real +0.0030 effect. It
+was caught only because the magnitude was implausible for the perturbation.
+Snapshot `fit.adjustments` once per season and rebuild per match.
+
+---
+
 ### Squad-value features — TESTED AND REJECTED (2026-08-24)
 
 Prompted by a good observation: the model rates Newcastle on last season's

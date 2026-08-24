@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 import pandas as pd
 
 import dixon_coles as dc
+import availability as AVAIL
 import market_prior as MP
 import simulate as S
 from fixtures import CURRENT_SEASON, load_fixtures, played_matches
@@ -127,6 +128,26 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
         fit, _prior_used = MP.apply_market_prior(fit, fx, season_teams)
         prior_info = getattr(fit, "market_prior_info", {})
 
+    # KEY-PLAYER AVAILABILITY. Held out this is worth +0.0030 log loss ON TOP of
+    # the market prior (positive in 8 of 9 seasons, p=0.018) -- unlike squad
+    # value, which the prior absorbs entirely. The prior is fitted once on the
+    # opening fixtures, so it cannot know who is injured in November; this can.
+    # Live numbers come from FPL's injury flags, standardised onto the scale the
+    # coefficient was tuned on, since the two sources centre differently.
+    avail_info = {}
+    try:
+        live = AVAIL.live_from_fpl()
+        off = AVAIL.offsets(live, standardise=True)
+        merged = dict(fit.adjustments)
+        for t, (da, dd) in off.items():
+            d0 = merged.get(t, (0.0, 0.0))
+            merged[t] = (d0[0] + da, d0[1] + dd)
+        fit.adjustments = merged
+        avail_info = {t: round(v, 4) for t, v in live.items()}
+    except Exception as e:
+        print(f"  NOTE: availability unavailable ({type(e).__name__}); "
+              "injuries are invisible to this snapshot.")
+
     # Season simulation needs the full fixture list with results where played.
     combined = pd.concat(
         [historical_matches(season), fx.assign(season=season)], ignore_index=True)
@@ -188,6 +209,8 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "market_prior_shrink": MP.SHRINK,
             "market_prior": {k: round(v["delta"], 4) for k, v in prior_info.items()},
             "market_prior_scope": "all teams",
+            "availability_gamma": AVAIL.AVAIL_GAMMA,
+            "availability": avail_info,
             "ridge": dc.RIDGE,
             "xg_weight": fit.xg_weight,
             "xg_training_matches": fit.n_xg_matches,
