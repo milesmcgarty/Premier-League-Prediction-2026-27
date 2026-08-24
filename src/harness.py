@@ -99,8 +99,18 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     # Season simulation needs the full fixture list with results where played.
     combined = pd.concat(
         [historical_matches(season), fx.assign(season=season)], ignore_index=True)
+
+    # Promoted-team dispersion is re-tuned each season on the six preceding ones,
+    # because how predictable promoted sides are has been changing: the selected
+    # value has risen from 0.15 to 0.45 over the last decade. A fixed value left
+    # them at 44% coverage of their nominal 80% band.
+    sd_promoted, up_promoted = S.tune_promoted_sd(
+        historical_matches(season), season, league)
+
     sim = S.simulate_season(combined, season, league, n_sims=n_sims,
-                            as_of=as_of, fit=fit, seed=seed)
+                            as_of=as_of, fit=fit, seed=seed,
+                            strength_sd_promoted=sd_promoted,
+                            promoted_up_ratio=up_promoted)
     forecast = S.summarise(sim, league)
 
     # --- upcoming match probabilities ---
@@ -135,6 +145,9 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             "window_seasons": dc.LEAGUE_PARAMS[league]["window"],
             "half_life_days": dc.LEAGUE_PARAMS[league]["half_life"],
             "strength_sd": S.STRENGTH_SD,
+            "strength_sd_promoted": sd_promoted,
+            "promoted_up_ratio": up_promoted,
+            "promoted_teams": sorted(S.promoted_teams(combined, season, league)),
             "ridge": dc.RIDGE,
             "intercept": round(fit.intercept, 5),
             "home_adv": round(fit.home_adv, 5),
