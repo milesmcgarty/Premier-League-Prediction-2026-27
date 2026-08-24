@@ -120,8 +120,14 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     # because how predictable promoted sides are has been changing: the selected
     # value has risen from 0.15 to 0.45 over the last decade. A fixed value left
     # them at 44% coverage of their nominal 80% band.
+    # Tuned WITH the prior active, on the seasons before this one. Both matter:
+    # tuning without the prior compensates for an error the prior already fixed
+    # (it selects 0.55, over-covers at 96% and gives promoted sides a 9% top-six
+    # chance against a historical 0 in 75), and a single fixed value cannot work
+    # because promoted-team predictability is non-stationary -- the rolling pick
+    # climbs 0.15 -> 0.35 across the last nine seasons.
     sd_promoted, up_promoted = S.tune_promoted_sd(
-        historical_matches(season), season, league)
+        historical_matches(season), season, league, apply_prior=True)
 
     sim = S.simulate_season(combined, season, league, n_sims=n_sims,
                             as_of=as_of, fit=fit, seed=seed,

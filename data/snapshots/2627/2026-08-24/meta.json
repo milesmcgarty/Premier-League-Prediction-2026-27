@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-08-24T14:59:53",
-  "generated_utc": "2026-08-24T15:02:09+00:00",
+  "as_of": "2026-08-24T15:36:39",
+  "generated_utc": "2026-08-24T15:37:50+00:00",
   "season": "2627",
   "league": "Prem",
   "n_sims": 20000,
@@ -10,7 +10,7 @@
     "window_seasons": 5,
     "half_life_days": 365,
     "strength_sd": 0.15,
-    "strength_sd_promoted": 0.55,
+    "strength_sd_promoted": 0.35,
     "promoted_up_ratio": 1.0,
     "promoted_teams": [
       "Coventry City",
@@ -32,7 +32,7 @@
     "converged": true,
     "newcomer_prior": "mean of 15 League One arrivals"
   },
-  "git_commit": "b954c4f",
+  "git_commit": "2ba17f7",
   "match_prediction_source": "model_only_plus_market_prior_for_promoted",
   "stale_fixtures": 9
 }

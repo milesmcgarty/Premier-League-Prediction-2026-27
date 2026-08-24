@@ -305,10 +305,36 @@ PROMOTED_LOOKBACK = 6
 
 
 _PROMOTED_SD_CACHE = {}
+_TUNING_FIT_CACHE = {}
+
+
+def _tuning_fit(matches, season, league, apply_prior):
+    """Fit for one tuning season, with the market prior applied if requested.
+
+    The dispersion MUST be tuned against the same model that will be used, or it
+    compensates for an error the prior has already fixed. Measured: tuned without
+    the prior it selects 0.55, which then over-covers at 96% and gives promoted
+    sides a 9% chance of a top-six finish against a historical 0 in 75.
+    """
+    key = (season, league, apply_prior)
+    if key in _TUNING_FIT_CACHE:
+        return _TUNING_FIT_CACHE[key]
+    from dixon_coles import fit_for_league
+    f = fit_for_league(matches, season, league)
+    if apply_prior:
+        import market_prior as _MP
+        fx = matches[(matches["season"] == season) &
+                     (matches["league"] == league)].sort_values("date")
+        promo = promoted_teams(matches, season, league)
+        if promo:
+            f, _ = _MP.apply_market_prior(f, fx, promo)
+    _TUNING_FIT_CACHE[key] = f
+    return f
 
 
 def tune_promoted_sd(matches, season, league="Prem", lookback=PROMOTED_LOOKBACK,
-                     grid=PROMOTED_SD_GRID, n_sims=3000, seed=11, use_cache=True):
+                     grid=PROMOTED_SD_GRID, n_sims=3000, seed=11, use_cache=True,
+                     apply_prior=True):
     """Choose the promoted-team dispersion from the seasons immediately BEFORE
     `season`, by minimising the KS distance of the PIT from uniform.
 
@@ -329,7 +355,7 @@ def tune_promoted_sd(matches, season, league="Prem", lookback=PROMOTED_LOOKBACK,
     # The search is ~20 configurations x lookback seasons of simulation, which
     # takes about 100s. The harness would otherwise repeat it on every snapshot
     # even though the answer only changes once a season.
-    key = (season, league, lookback, tuple(grid), n_sims, seed)
+    key = (season, league, lookback, tuple(grid), n_sims, seed, apply_prior)
     if use_cache and key in _PROMOTED_SD_CACHE:
         return _PROMOTED_SD_CACHE[key]
 
@@ -351,7 +377,8 @@ def tune_promoted_sd(matches, season, league="Prem", lookback=PROMOTED_LOOKBACK,
             promo = promoted_teams(matches, s, league)
             if not promo:
                 continue
-            sim = simulate_season(matches, s, league, n_sims=n_sims,
+            f = _tuning_fit(matches, s, league, apply_prior)
+            sim = simulate_season(matches, s, league, n_sims=n_sims, fit=f,
                                   strength_sd_promoted=sd,
                                   promoted_up_ratio=up, seed=seed)
             played = matches[(matches["season"] == s) & (matches["league"] == league)]

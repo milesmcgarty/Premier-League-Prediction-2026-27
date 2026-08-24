@@ -173,6 +173,57 @@ champion's title probability climbs 29% → 100% as results arrive, and the fina
 snapshot reproduces the real table exactly. That dry run caught a real
 double-counting bug that would otherwise have corrupted every live weekly snapshot.
 
+### Promoted teams: the hardest problem, and where the market comes in
+
+The single largest error in the model was newly promoted teams. A promoted side's
+rating is derived from Championship form — and **Championship form does not predict
+Premier League performance**: across 75 promotions the correlation between a team's
+Championship points and its subsequent Premier League points is **+0.004**. The model
+was extrapolating confidently from a predictor that does not predict. That is how it
+gave Sunderland a 96.3% relegation probability in 2025-26. They finished 7th.
+
+Three things were tried, and only the third worked:
+
+1. **Squad market values from Transfermarkt** — blocked. The dataset covers the
+   Premier League only; the promoted teams we most need to value are precisely the
+   ones absent from it.
+2. **Features we already had** — parachute payments, promotion route, Championship
+   points. All null: combined R² = 0.024.
+3. **The bookmaker odds we'd been using only as a scoreboard** — this worked.
+
+Bookmakers price a promoted side's opening fixtures knowing the summer transfers,
+the manager and the squad overhaul that a goals-only model cannot see. Across 63
+promoted team-seasons, the expected points per game implied by the market's first six
+fixtures correlates **+0.382 (p=0.002)** with that team's final points, against +0.147
+(not significant) for our own rating.
+
+So we read a strength offset off those prices and use it to rate the team for the
+whole season — including the May fixtures nobody will price for months.
+
+**This is not the blend that failed.** That combined a match prediction with the same
+match's price and added nothing. This moves information from the small *priced* set to
+the large *unpriced* one, which is the only place the market cannot help directly. It
+is also the architecture this project set out to match: a power rating, informed by
+the market, driving a Monte Carlo simulation.
+
+Held out, with the prior-building fixtures excluded from scoring:
+
+| | Log loss | Change |
+|---|---:|---:|
+| All fixtures | 0.9884 → **0.9829** | +0.0055 |
+| **Promoted-team fixtures** | 0.9668 → **0.9446** | **+0.0222** |
+| Gap to the market on promoted fixtures | +0.0462 → **+0.0240** | halved |
+
+What it does in practice: our model rated Sunderland and Burnley about the same in
+August 2025. The market separated them — Sunderland +0.290, Burnley −0.236. They
+finished **7th on 54 points** and **19th on 22**.
+
+**Honest limits.** The prior *imports* market information rather than discovering
+anything new, so it cannot make the model better than the market — re-running the
+blend test confirmed the weight stays at zero. And promoted teams remain the least
+predictable part of the league: even with the prior their season-points intervals
+cover at 70% against a nominal 80%.
+
 ---
 
 ## Things that turned out to be wrong
@@ -269,8 +320,8 @@ Everything except `benchmark_elo.py` runs offline from data in the repo.
 | 5. Market blend | ✅ tested — **it does not help**, see below |
 | 6. Season simulator (Monte Carlo, calibrated) | ✅ |
 | 7. Live 2026-27 harness with weekly snapshots | ✅ |
-| 8. Promoted-team ratings from transfer/squad-value data | next |
-| 9. Expected-goals layer (Understat), A/B tested on the backtest | planned |
+| 8. Promoted-team ratings via market-implied priors | ✅ |
+| 9. Expected-goals layer (Understat), A/B tested on the backtest | next |
 | 10. Player-level model (minutes, goals, assists) | planned |
 
 **Phase 5 is a negative result, kept deliberately.** Blending model probabilities

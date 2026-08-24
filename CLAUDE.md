@@ -402,6 +402,71 @@ fit takes ~40s; with it, ~0.1s. Verified against numerical differentiation (rela
 error 2e-7 to 2e-6) and reproduces the same estimates. If you touch the likelihood,
 **re-verify the gradient** — a wrong gradient fails silently.
 
+### Phase 8 — promoted-team ratings — ✅ DONE (market priors)
+`src/market_prior.py`.
+
+**The defect.** Promoted teams' ratings come from Championship form, and
+Championship form does NOT predict Premier League performance — corr **+0.004**
+across 75 promotions. Sunderland: 96.3% relegation, finished 7th.
+
+**What was blocked.** Transfermarkt has **no Championship data at all** (0 rows of
+GB2 in every table). The Phase 1 note "PL = GB1, Champ = GB2" was wrong and had
+never been tested. Coventry is absent entirely; Hull's record stops at 2016.
+
+**What was null.** Parachute payments (p=0.35, wrong sign), auto-vs-playoff
+(p=0.47), Championship points (corr +0.004). Combined R² = **0.024**.
+
+**What worked — market-implied priors.** Market's first-6-fixtures implied ppg
+correlates **+0.382 (p=0.002)** with final points vs +0.147 for our own rating.
+Fit a scalar strength offset per promoted team by minimising KL(market ‖ model)
+over their priced fixtures, shrink by 0.75 (tuned on TUNE). Held out, with
+prior-building fixtures EXCLUDED from scoring: all fixtures 0.9884 → 0.9829;
+promoted fixtures 0.9668 → **0.9446**; gap to market on promoted fixtures halved
+from +0.0462 to +0.0240.
+
+**Why this is not the failed blend.** Phase 5 combined a prediction with the SAME
+match's price and gained nothing. This moves information from the priced set to
+the UNPRICED set (May fixtures), which the market cannot reach. Re-running the
+blend test confirms the weight stays at 0 — the prior imports market information
+rather than creating new information. Say that plainly; it is the honest framing.
+
+#### ⚠️ The dispersion MUST be tuned with the prior active
+
+Tuned without it, the tuner picks sd=0.55 to compensate for a bad point estimate.
+Once the prior fixes the estimate, that spread is noise: it over-covers at 96%,
+gives promoted sides a **9% top-six chance** (historical: 0 of 75) and a 75-point
+upper bound (historical max 59). `tune_promoted_sd(apply_prior=True)` is now the
+default and the harness uses it.
+
+#### ⚠️ Promoted-team predictability is NON-STATIONARY — use the rolling tuner
+
+No fixed dispersion works. On TUNE seasons (0809–1617) promoted teams need little
+extra spread; on REPORT (1718–2526) they need a lot. A value tuned on TUNE and
+frozen UNDERPERFORMS out of sample. The rolling tuner (re-select on the six
+preceding seasons) is the answer, and what it picks climbs steadily:
+0.15 ×5 → 0.25 → 0.35 ×3 across the nine held-out seasons.
+
+Held-out comparison, promoted teams (n=27):
+
+| approach | 80% cover | PIT p | P(top6) |
+|---|---|---|---|
+| no prior, no dispersion fix | 48.1% | **0.006** | 2.2% |
+| fixed 0.55/0.35 (tuned w/o prior) | 96.3% | 0.121 | 9.0% |
+| fixed 0.15/0.70 (tuned w/ prior) | 55.6% | 0.050 | 1.3% |
+| **rolling + prior** | **70.4%** | **0.269** | **3.3%** |
+
+Still short of the nominal 80% (z=−1.25, not significant). Promoted teams remain
+the least predictable part of the league and that is a real limit, not a bug.
+
+#### ⚠️ The prior needs ODDS on the fixture table
+
+The FPL fixture feed carries no odds, so the prior silently did nothing on the
+first live run. `fixtures.py` now joins football-data's upcoming-fixture odds,
+and `market_prior` prints a warning instead of no-opping in silence. Caught by
+reading the written meta.json rather than trusting the pipeline. The prior is
+weak early (only ~1 fixture per team priced in mid-August) and sharpens as the
+season is priced.
+
 ---
 
 ## 6. Roadmap beyond Phase 4 (planned, not built)
@@ -456,7 +521,13 @@ error 2e-7 to 2e-6) and reproduces the same estimates. If you touch the likeliho
   **Validated** by `validate_harness.py` replaying 2025-26: the champion's title
   probability climbs 29% → 100%, and the final snapshot reproduces the real table
   exactly.
-- **Phase 8 — promoted-team ratings from transfer/squad-value data — NEXT.**
+- **Phase 8 — promoted-team ratings — ✅ DONE via MARKET PRIORS, not transfer data.**
+  `src/market_prior.py`. See section 5 for the full account. Short version: the
+  Transfermarkt route is BLOCKED (dataset is Premier League only — CLAUDE.md's
+  "Champ = GB2" was wrong), features we already had are null (combined R²=0.024),
+  and the thing that worked was bookmaker odds. Held out: promoted-fixture log
+  loss 0.9668 → 0.9446, halving the gap to the market on those fixtures.
+- ~~**Phase 8 — promoted-team ratings from transfer/squad-value data**~~ (superseded)
   The largest remaining gap, and both the "Championship weakness" and the "widening
   market deficit" reduce to it. The Transfermarkt DuckDB is already on disk.
   **The integration point already exists**: `DixonColesFit.adjustments`, a
