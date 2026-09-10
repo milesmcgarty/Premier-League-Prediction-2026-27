@@ -47,15 +47,17 @@ VALIDATION = {
     "matches": 3420,
 }
 
-# One-off attribution, measured 2026-09-10 by re-running the pipeline four ways
+# One-off attribution, RE-measured 2026-09-10 after the outright fitter was
+# corrected. The earlier figures were produced by the buggy fitter and were
+# wrong; re-running the pipeline four ways
 # at a fixed as_of. Recomputing it costs four full simulations, so it is stored
 # rather than rebuilt weekly.
 ATTRIBUTION = {
     "measured": "2026-09-10",
     "rows": [
-        ("Arsenal", 0.426, 0.140, 0.087, 0.647),
-        ("Manchester City", 0.370, -0.130, -0.019, 0.200),
-        ("Chelsea", 0.040, 0.087, -0.001, 0.109),
+        ("Arsenal", 0.4269, 0.1511, 0.0841, 0.6129),
+        ("Manchester City", 0.3711, -0.1384, -0.0181, 0.1958),
+        ("Chelsea", 0.0390, 0.0590, -0.0003, 0.1022),
     ],
     "weight": [(1, 0.008), (4, 0.033), (8, 0.067), (15, 0.125),
                (22, 0.180), (30, 0.239), (38, 0.298)],
