@@ -10,6 +10,44 @@ declared correct.
 
 ---
 
+## The 2026-27 season, live
+
+The model re-fits, re-simulates and writes a dated snapshot every week. This
+table is regenerated from the newest one — no figure in it is typed by hand.
+
+<!-- LEAGUE-TABLE:START -->
+
+Snapshot **2026-09-10** &middot; **30 of 380** league fixtures played (3 of 38 per club) &middot; remaining 350 simulated 20,000 times.
+
+| # | Club | P | W | D | L | GD | Pts | xPts | Median | 10th-90th | Title | Top 4 | Rel |
+|--:|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 1 | **Manchester City** | 3 | 3 | 0 | 0 | +5 | **9** | 75.4 | 76 | 63-88 | 19.6% | 80.8% | 0.0% |
+| 2 | **Arsenal** | 3 | 3 | 0 | 0 | +5 | **9** | 84.4 | 85 | 72-96 | 61.3% | 96.4% | 0.0% |
+| 3 | **Hull City** | 3 | 2 | 1 | 0 | +3 | **7** | 30.4 | 29 | 15-48 | 0.1% | 1.3% | 67.9% |
+| 4 | **Chelsea** | 3 | 2 | 0 | 1 | +1 | **6** | 70.8 | 71 | 57-84 | 10.2% | 66.0% | 0.1% |
+| 5 | **Brentford** | 3 | 1 | 2 | 0 | +3 | **5** | 54.9 | 55 | 42-68 | 0.2% | 11.6% | 2.5% |
+| 6 | **Liverpool** | 3 | 1 | 2 | 0 | +2 | **5** | 66.7 | 67 | 54-79 | 4.2% | 51.3% | 0.1% |
+| 7 | **Newcastle United** | 3 | 1 | 2 | 0 | +2 | **5** | 52.4 | 52 | 40-66 | 0.3% | 8.2% | 3.7% |
+| 8 | **Everton** | 3 | 1 | 2 | 0 | +2 | **5** | 49.1 | 49 | 38-61 | 0.0% | 3.0% | 6.0% |
+| 9 | **Leeds United** | 3 | 1 | 2 | 0 | +1 | **5** | 49.7 | 49 | 38-62 | 0.1% | 4.2% | 5.8% |
+| 10 | **Brighton** | 3 | 1 | 1 | 1 | +3 | **4** | 54.9 | 55 | 41-68 | 0.4% | 12.0% | 3.3% |
+| 11 | **Manchester United** | 3 | 1 | 1 | 1 | +1 | **4** | 63.5 | 63 | 50-76 | 2.8% | 37.1% | 0.2% |
+| 12 | **Sunderland** | 3 | 1 | 1 | 1 | +0 | **4** | 42.2 | 42 | 30-54 | 0.0% | 0.8% | 21.6% |
+| 13 | **Crystal Palace** | 3 | 1 | 0 | 2 | -4 | **3** | 43.9 | 44 | 31-57 | 0.0% | 1.3% | 18.1% |
+| 14 | **Ipswich Town** | 3 | 1 | 0 | 2 | -4 | **3** | 35.2 | 34 | 17-55 | 0.1% | 2.3% | 52.2% |
+| 15 | **Bournemouth** | 3 | 0 | 2 | 1 | -1 | **2** | 48.6 | 48 | 36-62 | 0.1% | 3.9% | 9.0% |
+| 16 | **Nottingham Forest** | 3 | 0 | 2 | 1 | -1 | **2** | 47.7 | 48 | 35-60 | 0.0% | 2.7% | 9.3% |
+| 17 | **Aston Villa** | 3 | 0 | 1 | 2 | -5 | **1** | 52.5 | 53 | 39-66 | 0.2% | 7.7% | 5.3% |
+| 18 | **Tottenham Hotspur** | 3 | 0 | 1 | 2 | -5 | **1** | 52.4 | 53 | 39-65 | 0.1% | 7.6% | 4.7% |
+| 19 | **Fulham** | 3 | 0 | 0 | 3 | -3 | **0** | 39.8 | 40 | 28-52 | 0.0% | 0.4% | 29.2% |
+| 20 | **Coventry City** | 3 | 0 | 0 | 3 | -5 | **0** | 31.6 | 31 | 13-51 | 0.1% | 1.5% | 60.9% |
+
+Ordered by current position. **xPts** is mean final points across the simulations; the band is the 10th to 90th percentile. Regenerate with `py src/figures.py`.
+
+<!-- LEAGUE-TABLE:END -->
+
+---
+
 ## Headline result
 
 Rolling backtest, **9 held-out seasons** (2017-18 → 2025-26, **3,420 Premier League

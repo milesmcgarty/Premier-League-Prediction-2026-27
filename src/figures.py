@@ -175,7 +175,77 @@ def _write(path, svg):
 
 def build_all():
     print("figures:")
-    return [checkpoint_chart(), weight_chart(), ladder_chart()]
+    out = [checkpoint_chart(), weight_chart(), ladder_chart()]
+    write_league_table()
+    return out
+
+
+
+
+# --- README league table ---------------------------------------------------
+# Markdown, not SVG, because GitHub renders tables natively and a table of
+# numbers should be selectable text rather than a picture of numbers.
+
+START = "<!-- LEAGUE-TABLE:START -->"
+END = "<!-- LEAGUE-TABLE:END -->"
+
+
+def league_table_md(season="2627", league="Prem"):
+    """The live table joined to the forecast, as a markdown block."""
+    import json
+
+    import simulate as S
+    from fixtures import load_fixtures, played_matches
+
+    snap = sorted(p for p in (ROOT / "data" / "snapshots" / season).iterdir()
+                  if p.is_dir())[-1]
+    meta = json.loads((snap / "meta.json").read_text())
+    fc = pd.read_csv(snap / f"season_forecast_{league}.csv").set_index("team")
+    tab = S.results_table(played_matches(load_fixtures(season))).set_index("team")
+
+    has_q = "pts_50" in fc.columns
+    out = [START, "",
+           f"Snapshot **{meta['as_of'][:10]}** &middot; "
+           f"**{meta['matches_played']} of 380** league fixtures played "
+           f"({meta['matches_played'] // 10} of 38 per club) &middot; "
+           f"remaining {meta['matches_remaining']} simulated "
+           f"{meta['n_sims']:,} times.", "",
+           "| # | Club | P | W | D | L | GD | Pts | xPts | "
+           + ("Median | " if has_q else "") + "10th-90th | Title | Top 4 | Rel |",
+           "|--:|:--|--:|--:|--:|--:|--:|--:|--:|" + ("--:|" if has_q else "")
+           + "--:|--:|--:|--:|"]
+    for t, c in tab.sort_values("pos").iterrows():
+        if t not in fc.index:
+            continue
+        f = fc.loc[t]
+        med = f"{f['pts_50']:.0f} | " if has_q else ""
+        out.append(
+            f"| {int(c['pos'])} | **{t}** | {int(c['P'])} | {int(c['W'])} | "
+            f"{int(c['D'])} | {int(c['L'])} | {int(c['GD']):+d} | "
+            f"**{int(c['Pts'])}** | {f['exp_pts']:.1f} | {med}"
+            f"{f['pts_10']:.0f}-{f['pts_90']:.0f} | {f['title']:.1%} | "
+            f"{f['top4']:.1%} | {f['releg']:.1%} |")
+    out += ["",
+            "Ordered by current position. **xPts** is mean final points across "
+            "the simulations; the band is the 10th to 90th percentile. "
+            "Regenerate with `py src/figures.py`.", "", END]
+    return "\n".join(out)
+
+
+def write_league_table(readme=None):
+    """Replace the marked block in README.md, or append it if absent."""
+    readme = readme or ROOT / "README.md"
+    txt = readme.read_text(encoding="utf-8")
+    block = league_table_md()
+    if START in txt and END in txt:
+        pre, rest = txt.split(START, 1)
+        _, post = rest.split(END, 1)
+        txt = pre + block + post
+    else:
+        raise SystemExit(f"markers not found in {readme.name}; add {START} / {END}")
+    readme.write_text(txt, encoding="utf-8")
+    print(f"  wrote league table into {readme.name}")
+    return readme
 
 
 if __name__ == "__main__":
