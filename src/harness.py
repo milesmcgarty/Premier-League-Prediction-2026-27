@@ -191,8 +191,14 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
                 arch = OR.archive(season, as_of=as_of)
                 if arch:
                     print(f"  archived market view -> {arch.relative_to(ROOT)}")
+            # THE FITTING SIMULATOR MUST BE THE PRODUCTION SIMULATOR. Pass the
+            # same as_of and the same tuned dispersion used below, or the
+            # offsets are fitted against a season that is not the one being
+            # forecast -- which is exactly what happened until 2026-09-10.
             od, _hist = OR.fit_outright_offsets(
-                combined, season, league, got, fit=fit, verbose=False)
+                combined, season, league, got, fit=fit, verbose=False,
+                sim_kw=dict(as_of=as_of, strength_sd_promoted=sd_promoted,
+                            promoted_up_ratio=up_promoted))
             merged = dict(fit.adjustments)
             for t, dv in od.items():
                 d0 = merged.get(t, (0.0, 0.0))

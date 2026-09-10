@@ -668,6 +668,55 @@ were wrong. `src/figures.py` writes the README's SVG charts from the results
 CSVs, with explicit hex colours — GitHub sanitises SVG and strips CSS
 variables, so a variable-driven palette renders invisible.
 
+#### ⚠️⚠️ THE OUTRIGHT FITTER WAS SOLVING A DIFFERENT PROBLEM (fixed 2026-09-10)
+
+Found because Miles looked at the published table and said Villa were too low,
+Everton too high and Bournemouth too low. All three matched the BOOKMAKER
+against us — so it was not a matter of taste, and the outright offsets exist
+precisely to stop that happening. Three separate defects in `_sim_probs`:
+
+1. **It discarded the other adjustments.** `f.adjustments = {t: (d, d) ...}`
+   ASSIGNED rather than added, wiping the market prior and the availability
+   offsets off the fit. Offsets were therefore fitted in an injury-free world
+   and then applied by the harness ON TOP of the availability penalty. Villa's
+   availability is 0.659, the lowest in the league, so they took the market
+   correction and the injury hit both and finished far below the price the
+   correction was meant to reproduce.
+2. **It simulated the wrong season.** No `as_of`, so all 380 fixtures were
+   simulated from scratch while production simulates from the real current
+   table. Villa's 1 point from 3 games was invisible to the fitter and dominant
+   in production. The tuned promoted dispersion was dropped too.
+3. **It never converged.** A stochastic fixed-point iteration at 4,000 sims has
+   a logit noise floor of ~0.07 at p=0.05 — the same size as the error being
+   chased. It reached RMSE 0.078 by step 15, bounced to 0.144 by step 20, and
+   shipped whatever step 29 held.
+
+**THE RULE: the fitting simulator must BE the production simulator.** `sim_kw`
+now carries as_of and the tuned dispersion through from the harness, so the only
+differences left are n_sims and the seed.
+
+Convergence fixes: 12,000 sims, 60 iterations, a step decaying as 1/(1+it/10),
+and **Polyak averaging over the trailing iterates**. Averaging, not best-iterate
+selection — picking the lowest-RMSE step would be selecting on simulation noise
+and would flatter the reported error.
+
+**Measured effect.** Logit RMSE of the shipped forecast against the prices it
+was fitted to: **0.553 → 0.169**. Villa top-four 2.1% → 7.7% (book 7.3%),
+relegation 12.7% → 5.3% (book 4.8%); Everton relegation 2.8% → 6.0% (book 7.8%).
+
+**Residual, and why it is not a bug.** Bournemouth is now the worst at +0.446
+(relegation 9.0% vs 5.9%). Sweeping their offset shows the market's point is
+UNREACHABLE by any scalar: at −0.06 relegation matches but top-four is 6.4% vs
+4.4%; at −0.10 top-four matches but relegation goes to ~9%. One parameter per
+team shifts location, not spread. A hypothesis that this reflects systematically
+fat mid-table tails was TESTED AND REJECTED (mean excess −0.53%, p=0.31,
+positive in 4/10) — it is idiosyncratic to Bournemouth and the promoted sides.
+Do NOT add per-team variance parameters: that is 20 more freedoms against 34
+noisy constraints.
+
+**The dashboard now renders this residual live**, so the next time the fitter
+stops doing its job the page says so instead of quietly shipping.
+
 #### ⚠️ A dry run was poisoning the outright archive
 
 `run_snapshot` archived the market view even with `write=False`, so a

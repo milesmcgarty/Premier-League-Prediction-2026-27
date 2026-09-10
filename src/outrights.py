@@ -34,8 +34,8 @@ from paths import REFERENCE_DIR, ROOT, load_matches
 ARCHIVE_DIR = ROOT / "data" / "outrights"
 
 MARKETS = ("title", "top4", "releg")
-DEFAULT_ITERS = 30
-DEFAULT_SIMS = 4000
+DEFAULT_ITERS = 60
+DEFAULT_SIMS = 12000
 LR = 0.35          # damped update; the mapping from offset to probability is steep
 MAX_DELTA = 0.9    # keep offsets inside the range the fit can express
 
@@ -206,11 +206,37 @@ def from_odds_api(season_teams):
 
 
 # --------------------------------------------------------------------------
-def _sim_probs(matches, season, league, fit, delta, n_sims, seed=7):
+def _sim_probs(matches, season, league, fit, delta, n_sims, seed=7, sim_kw=None):
+    """Simulate under `delta`, ADDING it to whatever the fit already carries.
+
+    Two things here were wrong for a long time and both mattered:
+
+    1. This used to ASSIGN `f.adjustments = {t: (d, d) ...}`, discarding the
+       market prior and the availability offsets the caller had already put on
+       the fit. The offsets were therefore fitted in a world with no injuries,
+       and then applied by the harness ON TOP of the injury adjustments -- so a
+       depleted squad got the market's correction and the availability penalty
+       both, and finished far below the price the offset was meant to reproduce.
+
+    2. It called simulate_season with no `as_of`, simulating all 380 fixtures
+       from scratch while production simulates from the real current table. Mid
+       season those are different distributions, so the fitter was matching the
+       market on a season that had not happened.
+
+    The rule this encodes: THE FITTING SIMULATOR MUST BE THE PRODUCTION
+    SIMULATOR. `sim_kw` carries as_of, the tuned promoted dispersion and
+    anything else the harness passes, so the only differences left are n_sims
+    and the seed.
+    """
     import copy as _c
     f = _c.copy(fit)
-    f.adjustments = {t: (d, d) for t, d in delta.items()}
-    sim = S.simulate_season(matches, season, league, n_sims=n_sims, fit=f, seed=seed)
+    merged = dict(getattr(fit, "adjustments", None) or {})
+    for t, d in delta.items():
+        d0 = merged.get(t, (0.0, 0.0))
+        merged[t] = (d0[0] + d, d0[1] + d)
+    f.adjustments = merged
+    sim = S.simulate_season(matches, season, league, n_sims=n_sims, fit=f,
+                            seed=seed, **(sim_kw or {}))
     n = len(sim["teams"])
     pos = sim["position"]
     return sim["teams"], {
@@ -226,18 +252,34 @@ def _logit(p):
 
 
 def fit_outright_offsets(matches, season, league, targets, fit=None,
-                         n_iter=DEFAULT_ITERS, n_sims=DEFAULT_SIMS, verbose=True):
+                         n_iter=DEFAULT_ITERS, n_sims=DEFAULT_SIMS, verbose=True,
+                         sim_kw=None, burn_in=0.5):
     """Strength offsets that make the simulator reproduce the market's outrights.
 
     `targets` is {market: {team: probability}}. Any subset of title/top4/releg
     may be supplied; each is matched in logit space and averaged.
+
+    CONVERGENCE. This is a stochastic fixed-point iteration: the "gradient" is
+    a Monte Carlo estimate, so it has a noise floor. At 4,000 sims a probability
+    of 0.05 carries a logit standard error of about 0.07, which is the same size
+    as the error being chased -- the iteration used to reach RMSE 0.078 by step
+    15, bounce back to 0.144 by step 20, and then ship whatever step 29 happened
+    to hold. Three changes make it behave:
+
+      * more sims, so the noise floor sits below the tolerance
+      * a decaying step, so late iterations stop overshooting
+      * POLYAK AVERAGING over the second half of the run, which is what actually
+        removes the oscillation. Taking the best-RMSE iterate instead would be
+        selecting on noise and would flatter the reported error.
     """
     if fit is None:
         fit = dc.fit_for_league(matches, season, league)
-    teams, _ = _sim_probs(matches, season, league, fit, {}, 200)
+    teams, _ = _sim_probs(matches, season, league, fit, {}, 200, sim_kw=sim_kw)
     delta = {t: 0.0 for t in teams}
     idx = {t: i for i, t in enumerate(teams)}
     hist = []
+    trail = []
+    start_avg = int(n_iter * burn_in)
 
     # Which teams any supplied market actually discriminates. Everyone else is
     # left at exactly zero rather than picking up the recentring constant, which
@@ -247,7 +289,7 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
 
     for it in range(n_iter):
         _, ours = _sim_probs(matches, season, league, fit, delta, n_sims,
-                             seed=7 + it)
+                             seed=7 + it, sim_kw=sim_kw)
         err = np.zeros(len(teams))
         cnt = np.zeros(len(teams))
         for mkt, tgt in targets.items():
@@ -264,8 +306,11 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
         step = np.where(cnt > 0, err / np.maximum(cnt, 1), 0.0)
         rmse = float(np.sqrt(np.mean(step[cnt > 0] ** 2))) if (cnt > 0).any() else 0.0
         hist.append(rmse)
+        # Step decays as 1/(1 + it/10): big early moves, small late ones, so the
+        # iteration settles instead of rattling around the Monte Carlo noise.
+        lr = LR * 0.05 / (1.0 + it / 10.0)
         for t in fitted:
-            delta[t] = float(np.clip(delta[t] + LR * 0.05 * step[idx[t]],
+            delta[t] = float(np.clip(delta[t] + lr * step[idx[t]],
                                      -MAX_DELTA, MAX_DELTA))
         # recentre over the FITTED teams only, so their average is unchanged
         # relative to the untouched rest of the league
@@ -273,13 +318,25 @@ def fit_outright_offsets(matches, season, league, targets, fit=None,
             mu = np.mean([delta[t] for t in fitted])
             for t in fitted:
                 delta[t] -= mu
-        if verbose and (it % 5 == 0 or it == n_iter - 1):
+        if it >= start_avg:
+            trail.append(dict(delta))
+        if verbose and (it % 10 == 0 or it == n_iter - 1):
             print(f"    iter {it:>3}  logit RMSE {rmse:.4f}")
         if rmse < 0.02:
             break
+
+    # Polyak average over the trailing iterates. Averaging is unbiased; picking
+    # the single best-scoring iterate would be choosing on simulation noise.
+    if trail:
+        delta = {t: float(np.mean([d[t] for d in trail])) for t in delta}
+        if fitted:
+            mu = np.mean([delta[t] for t in fitted])
+            for t in fitted:
+                delta[t] -= mu
     if verbose:
         print(f"    fitted {len(fitted)} of {len(teams)} teams "
-              f"(the rest sit at the bookmaker's price floor and are left alone)")
+              f"(the rest sit at the bookmaker's price floor and are left alone)"
+              + (f", averaged over the last {len(trail)} iterates" if trail else ""))
     return {t: d for t, d in delta.items() if t in fitted}, hist
 
 

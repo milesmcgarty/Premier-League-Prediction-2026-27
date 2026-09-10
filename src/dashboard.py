@@ -11,6 +11,7 @@ import html
 import json
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 
 import outrights as OR
@@ -485,6 +486,46 @@ def _table(d):
             "</tr></thead><tbody>" + "".join(body) + "</tbody></table></div>")
 
 
+def market_fidelity(d):
+    """How closely does the published forecast reproduce the prices it was fitted
+    to? Computed live from the snapshot, so it cannot go stale.
+
+    This is the number that exposed the outright-fitting bug: the simulator was
+    being fitted against a pre-season, injury-free simulation and then shipped
+    from a mid-season, injury-aware one, so the offsets solved a problem nobody
+    was asking. A residual this large should always have been visible.
+    """
+    rows = []
+    for r in d["rows"]:
+        for mkt, ours, book in (("title", r["title"], r.get("m_title")),
+                                ("top four", r["top4"], r.get("m_top4")),
+                                ("relegation", r["releg"], r.get("m_releg"))):
+            if book is None or book < 0.01 or book > 0.99:
+                continue
+            rows.append((r["team"], mkt, float(ours), float(book),
+                         _logit(ours) - _logit(book)))
+    if not rows:
+        return None
+    err = np.array([x[4] for x in rows])
+    rows.sort(key=lambda x: -abs(x[4]))
+    body = "".join(
+        f'<tr><td class="l team">{esc(t)}</td>'
+        f'<td class="l" style="color:var(--muted)">{m}</td>'
+        f'<td style="color:var(--model)">{pc(o)}</td>'
+        f'<td style="color:var(--market)">{pc(b)}</td>'
+        f'<td class="hi">{e:+.2f}</td></tr>' for t, m, o, b, e in rows[:6])
+    return {"rmse": float(np.sqrt((err ** 2).mean())), "n": len(rows),
+            "table": ('<div class="tscroll"><table style="min-width:0"><thead><tr>'
+                      '<th class="l">Team</th><th class="l">Market</th>'
+                      '<th>Model</th><th>Book</th><th>logit err</th></tr></thead>'
+                      f'<tbody>{body}</tbody></table></div>')}
+
+
+def _logit(p):
+    p = float(np.clip(p, 1e-6, 1 - 1e-6))
+    return float(np.log(p / (1 - p)))
+
+
 def _disagree(d, k=6):
     out = []
     for r in d["rows"]:
@@ -574,6 +615,26 @@ def _race_line(d):
             f'{pc(under["m_title"])}).')
 
 
+def _fidelity_block(d):
+    """The self-check, rendered. A large residual here means the outright fit is
+    not doing its job -- which is exactly what was true until 2026-09-10."""
+    fid = market_fidelity(d)
+    if fid is None:
+        return '<p style="color:var(--muted)">No archived market view.</p>'
+    ok = fid["rmse"] < 0.25
+    return (f'<p style="font-size:12.5px;color:var(--muted)">Outright offsets are '
+            f'fitted so the simulator reproduces the bookmaker&rsquo;s title, top-four '
+            f'and relegation prices. This is the residual, in logit space, over '
+            f'{fid["n"]} team-markets.</p>'
+            f'<div style="display:flex;align-items:baseline;gap:10px">'
+            f'<span class="big mono" style="font-size:27px;font-weight:600;'
+            f'color:{"var(--good)" if ok else "var(--danger)"}">'
+            f'{fid["rmse"]:.3f}</span>'
+            f'<span style="font-size:12.5px;color:var(--muted)">RMSE '
+            f'(was 0.553 before the fitter was corrected)</span></div>'
+            + fid["table"])
+
+
 def render(d):
     meta = d["meta"]
     m = meta["model"]
@@ -643,11 +704,8 @@ def render(d):
       quietly rewriting it.</figcaption></figure>
     </div>
     <div class="panel">
-      <h3>Biggest disagreements with the book</h3>
-      {_disagree(d)}
-      <p style="font-size:12.5px;color:var(--muted)">Percentage points, model
-      minus bookmaker. Large gaps are candidates for the model being wrong,
-      not for a bet.</p>
+      <h3>Does it reproduce the prices it was fitted to?</h3>
+      {_fidelity_block(d)}
     </div>
   </div>
 </section>
