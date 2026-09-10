@@ -1,21 +1,21 @@
 team,title_odds,top4_odds,releg_odds
-Arsenal,1.9090909090909092,,
-Aston Villa,67.0,,
-Bournemouth,201.0,,
-Brentford,151.0,,
-Brighton,81.0,,
-Chelsea,7.0,,
-Coventry City,2001.0,,
-Crystal Palace,751.0,,
-Everton,201.0,,
-Fulham,751.0,,
-Hull City,2001.0,,
-Ipswich Town,1001.0,,
-Leeds United,351.0,,
-Liverpool,10.0,,
-Manchester City,5.0,,
-Manchester United,15.0,,
-Newcastle United,201.0,,
-Nottingham Forest,501.0,,
-Sunderland,1001.0,,
-Tottenham Hotspur,51.0,,
+Manchester City,4.0,1.2222222222222223,
+Arsenal,1.8,1.0303030303030305,2001.0
+Hull City,2001.0,501.0,1.5714285714285714
+Chelsea,9.5,1.5333333333333334,501.0
+Brentford,401.0,7.5,46.0
+Newcastle United,251.0,12.0,26.0
+Liverpool,19.0,1.8333333333333333,501.0
+Everton,551.0,26.0,13.0
+Leeds United,501.0,21.0,15.0
+Brighton,501.0,8.0,41.0
+Manchester United,34.0,2.75,251.0
+Sunderland,1501.0,126.0,5.0
+Crystal Palace,1501.0,101.0,5.0
+Ipswich Town,2001.0,501.0,2.0
+Bournemouth,551.0,21.0,17.0
+Nottingham Forest,551.0,29.0,9.5
+Tottenham Hotspur,151.0,10.0,21.0
+Aston Villa,251.0,13.0,21.0
+Fulham,1501.0,151.0,3.3
+Coventry City,2501.0,501.0,1.5333333333333334
