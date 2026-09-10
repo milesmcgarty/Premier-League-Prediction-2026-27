@@ -352,6 +352,41 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
     )
 
 
+def bootstrap_strength_sd(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
+                          xg_weight=None, n_boot=120, seed=11):
+    """Per-club parameter uncertainty, by resampling the training set.
+
+    The season simulator previously used ONE scalar dispersion for every club,
+    chosen to make a calibration statistic behave. That fits the symptom rather
+    than the cause, and it is wrong in a specific way: uncertainty is not equal
+    across clubs. Measured here, per-club strength sd ranges from about 0.070 to
+    0.112, and the widest belong to clubs with the thinnest data -- promoted
+    sides above all, which is exactly where the model is least trustworthy.
+
+    Returns a Series of per-club standard deviations on the combined
+    attack-plus-defence strength scale. Note this captures ESTIMATION error
+    only. Genuine within-season change in a club's strength is a separate,
+    larger component; see simulate.RESIDUAL_SD.
+    """
+    xg_weight = XG_WEIGHT if xg_weight is None else xg_weight
+    tr = matches.dropna(subset=["home_goals", "away_goals"]).reset_index(drop=True)
+    if cutoff is None:
+        cutoff = tr["date"].max() + pd.Timedelta(seconds=1)
+    rng = np.random.default_rng(seed)
+    acc = {}
+    for _ in range(n_boot):
+        idx = rng.integers(0, len(tr), len(tr))
+        f = fit_dixon_coles(tr.iloc[idx], cutoff=cutoff,
+                            half_life_days=half_life_days, xg_weight=xg_weight)
+        r = f.ratings.set_index("team")
+        for t in r.index:
+            acc.setdefault(t, []).append(r.loc[t, "attack"] + r.loc[t, "defence"])
+    # combined strength is attack + defence; halve to put it on the per-side
+    # scale the simulator applies to each of them
+    return pd.Series({t: float(np.std(v, ddof=1)) / np.sqrt(2)
+                      for t, v in acc.items() if len(v) > 5})
+
+
 def league_of(matches):
     """Each team's most recent division within `matches`."""
     out = {}

@@ -71,22 +71,93 @@ def has_odds(df, book):
     return df[cols].notna().all(axis=1) & (df[cols] > 1.0).all(axis=1)
 
 
-def market_probs(df, book):
+def _shin_z(raw, target=1.0):
+    """Shin's insider-trading parameter z, solved so the probabilities sum to target."""
+    from scipy.optimize import brentq
+    B = raw.sum()
+    if B <= target:
+        return 0.0
+
+    def total(z):
+        if z <= 0:
+            return raw.sum() / B * target
+        v = np.sqrt(z ** 2 + 4 * (1 - z) * raw ** 2 / B) - z
+        return (v / (2 * (1 - z))).sum()
+
+    try:
+        return float(brentq(lambda z: total(z) - target, 1e-9, 0.6))
+    except ValueError:
+        return 0.0
+
+
+def _power_k(raw, target=1.0):
+    """Exponent k such that raw**k sums to target."""
+    from scipy.optimize import brentq
+    try:
+        return float(brentq(lambda k: (raw ** k).sum() - target, 0.4, 3.0))
+    except ValueError:
+        return 1.0
+
+
+def devig(raw, method="proportional", target=1.0):
+    """Remove the bookmaker margin from raw implied probabilities (1/odds).
+
+    proportional  scale so the total is right. Simple, and the default for
+                  match markets, but it assumes the margin sits on every
+                  outcome in proportion to its price, which is known to be
+                  false: books load more margin onto longshots.
+    shin          Shin's model, which derives the margin from a proportion of
+                  informed money. Designed for single-winner markets.
+    power         raw ** k, solved for the total. Generalises cleanly to
+                  multi-place markets like top-four and relegation, where
+                  Shin's single-winner derivation does not strictly apply.
+
+    Longshot bias matters far more on outrights than on match odds: a title
+    market spans 4/5 to 2500/1, where a match market spans about 1.1 to 30.
+    """
+    raw = np.asarray(raw, dtype=float)
+    if method == "shin":
+        z = _shin_z(raw, target)
+        if z <= 0:
+            return raw / raw.sum() * target
+        B = raw.sum()
+        v = np.sqrt(z ** 2 + 4 * (1 - z) * raw ** 2 / B) - z
+        p = v / (2 * (1 - z))
+        return p / p.sum() * target
+    if method == "power":
+        k = _power_k(raw, target)
+        p = raw ** k
+        return p / p.sum() * target
+    return raw / raw.sum() * target
+
+
+def market_probs(df, book, method="proportional"):
     """De-vigged (H, D, A) probabilities as an (n, 3) array; NaN where absent.
 
     Overround removal is multiplicative: take 1/odds and normalise so the three
     sum to 1. Bookmakers price in a margin, so raw 1/odds sums to ~1.05 and
     would score as an invalid distribution.
 
-    This is the standard approach and is what we compare against. It does assume
-    the margin is spread proportionally across the three outcomes; Shin and
-    power methods relax that (they load more margin onto longshots). Worth
-    revisiting in Phase 5 if the market baseline is being flattered on heavy
-    favourites, but proportional is the honest default.
+    MEASURED on 22,360 matches (67,080 predictions), residual bias in the
+    extreme probability bins after de-vigging:
+
+        method         low bin    high bin
+        proportional   -0.0116     +0.0560
+        shin           +0.0025     +0.0258
+        power          +0.0017     -0.0015
+
+    Proportional leaves a clear favourite-longshot signature; the power method
+    removes it almost entirely. Match-level log loss barely moves (1.0101 vs
+    1.0099) because it is dominated by the bulk of the distribution, so
+    proportional remains the default HERE for continuity with published
+    figures. It is emphatically NOT the right choice for outright markets,
+    which are almost entirely made of the tails this test is measuring.
     """
     cols = ODDS_GROUPS[book]
     raw = 1.0 / df[cols].to_numpy(dtype=float)
-    return raw / raw.sum(axis=1, keepdims=True)
+    if method == "proportional":
+        return raw / raw.sum(axis=1, keepdims=True)
+    return np.vstack([devig(r, method=method, target=1.0) for r in raw])
 
 
 def overround(df, book):

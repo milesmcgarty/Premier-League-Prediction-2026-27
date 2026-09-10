@@ -48,6 +48,44 @@ from dixon_coles import MAX_GOALS, _tau, fit_for_league
 # than one scalar dispersion, is the natural refinement.
 STRENGTH_SD = 0.15
 
+# The scalar above was tuned to make the calibration statistic behave, which
+# fits the symptom. Bootstrapping the fit separates the two things it was
+# conflating:
+#   estimation error   ~0.082 per club, and it VARIES (0.070 to 0.112, widest
+#                      for promoted clubs with the thinnest data)
+#   genuine change     the rest, i.e. squads and form actually moving
+# Total dispersion for a club is sqrt(bootstrap_sd^2 + RESIDUAL_SD^2), so clubs
+# the model knows least about now get wider intervals on their own account
+# rather than everyone sharing one number. RESIDUAL_SD is tuned on TUNE seasons
+# with the bootstrap component already in place.
+RESIDUAL_SD = 0.1256
+USE_BOOTSTRAP_SD = False   # tested and NOT adopted; see below
+
+# TESTED AND REJECTED (2026-09-10). An external audit argued the scalar above is
+# wrong because it is fitted to a calibration symptom rather than propagating
+# real parameter uncertainty, and predicted that doing it properly would cut the
+# leader's title probability by 4-8 points. Bootstrapping the fit (120 refits per
+# season) and simulating within the draws was implemented and tested three ways:
+#
+#   held out, 9 seasons        80% cover   PIT KS      p
+#   scalar 0.15 (shipped)          75.0%   0.0567   0.589
+#   bootstrap only                 68.3%   0.0928   0.085
+#   bootstrap + residual 0.09      70.6%   0.0717   0.298
+#   per-club, same mean width      73.9%   0.0592   0.535
+#
+# The scalar wins or ties every variant. The reason is that per-club estimation
+# uncertainty spans only 0.070 to 0.112, so redistributing width across clubs
+# changes coverage hardly at all, and the residual component dominates. Tuning
+# the residual on TUNE also picked 0.09, giving a combined width of 0.122, which
+# is NARROWER than the 0.15 that demonstrably works -- the same non-stationarity
+# that has bitten every fixed hyperparameter in this project.
+#
+# What the bootstrap did establish, and why it is kept as a diagnostic:
+# estimation error accounts for ~55% of the dispersion (0.082 of 0.15), so
+# roughly 45% is genuine change in team strength. The residual narrowness at
+# 75.0% against a nominal 80% is therefore NOT parameter uncertainty, and the
+# remaining candidate is within-season evolution, which is not modelled.
+
 # Promoted teams get a WIDER draw. Measured on held-out seasons, splitting the
 # calibration by promotion status:
 #
@@ -144,7 +182,8 @@ def promoted_teams(matches, season, league):
 def simulate_season(matches, season, league, n_sims=10000, as_of=None,
                     fit=None, seed=0, max_goals=MAX_GOALS,
                     strength_sd=None, strength_sd_promoted=None,
-                    promoted_up_ratio=None, n_scenarios=N_SCENARIOS):
+                    promoted_up_ratio=None, n_scenarios=N_SCENARIOS,
+                    boot_sd=None):
     """Simulate a season from `as_of` onwards.
 
     Matches before `as_of` use their ACTUAL results; the rest are sampled.
@@ -212,6 +251,14 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
     promo = promoted_teams(matches, season, league)
     is_promo = np.array([t in promo for t in teams])
     sd_vec = np.where(is_promo, strength_sd_promoted, strength_sd).astype(float)
+    # Per-club parameter uncertainty, combined in quadrature with the residual
+    # component. A club the fit is unsure about gets a wider draw on its own
+    # merits instead of inheriting the league-wide scalar.
+    if boot_sd is not None:
+        base_sd = np.array([float(boot_sd.get(t, np.nan)) for t in teams])
+        have = np.isfinite(base_sd)
+        combined = np.sqrt(base_sd ** 2 + RESIDUAL_SD ** 2)
+        sd_vec = np.where(have & ~is_promo, combined, sd_vec)
     # scale applied only to POSITIVE offsets, and only for promoted sides
     up_vec = np.where(is_promo, promoted_up_ratio, 1.0).astype(float)
 

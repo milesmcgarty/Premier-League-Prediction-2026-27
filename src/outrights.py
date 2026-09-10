@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 
 import dixon_coles as dc
+import odds as O
 import simulate as S
 from paths import REFERENCE_DIR, load_matches
 
@@ -79,8 +80,14 @@ def load_outrights(season, teams):
         if (odds <= 1.0).any():
             raise ValueError(f"{col}: decimal odds must exceed 1.0")
         raw = 1.0 / odds
-        # scale so the market sums to the number of places it fills
-        p_ = raw * (totals[mkt] / raw.sum())
+        # POWER de-vig, scaled to the number of places the market fills.
+        # Proportional normalisation loads too little margin onto longshots; on
+        # a title market spanning 4/5 to 2500/1 that distortion is far larger
+        # than in a match market. Measured on 22,360 matches, proportional
+        # leaves +0.056 residual bias in the top probability bin where the power
+        # method leaves -0.0015. Shin is not used because its single-winner
+        # derivation does not apply to top-four or relegation.
+        p_ = O.devig(raw, method="power", target=totals[mkt])
         p_ = np.clip(p_, 1e-4, 1 - 1e-4)
         out[mkt] = dict(zip(sub["team"], p_))
     return out
