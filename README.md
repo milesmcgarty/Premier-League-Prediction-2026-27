@@ -50,6 +50,20 @@ predicted probability against realised frequency, no bin with n>100 deviates by
 more than |z| = 2. A model can post a respectable log loss while being
 systematically overconfident, so this is checked explicitly.
 
+### Every layer, and what each one bought
+
+Since that baseline, three layers have been added. Each was kept only because it
+improved the same held-out backtest, with its hyperparameters chosen on earlier
+seasons and frozen first:
+
+![Held-out match log loss by layer](docs/figures/logloss_ladder.svg)
+
+The shipped model scores **0.9760**, against **0.9640** for the closing line — a
+remaining gap of 0.0120. Two proposed layers were tested identically and
+**rejected**: a market blend (the tuner chose weight 0.00) and squad market value,
+which made things worse once the market prior was already applied. Those negative
+results are kept in the repo rather than deleted.
+
 ---
 
 ## What it does
@@ -252,6 +266,49 @@ were more interesting than the gain:
 
 ---
 
+## Does re-running it every week actually do anything?
+
+Every figure above comes from a forecast made on **1 August**. But the live product
+is a *weekly* re-run, and that had never been graded — a model can be perfectly
+calibrated pre-season and still add nothing from gameweek 12 onward.
+
+The reason to suspect it might not is this. Time decay has a one-year half-life, so
+the season in progress is a small fraction of what the model is actually fitted on:
+
+![Share of fitting weight from the current season](docs/figures/weight_share.svg)
+
+Four gameweeks in, this season is **3.3%** of the fitting weight. It does not reach
+a third until the season is over. So `checkpoint_backtest.py` scores three arms at
+six points in each of nine held-out seasons, against the same final table:
+
+- **frozen** — the August forecast, never touched again
+- **banked** — August's *strength estimates*, but simulated from the real current
+  table. Points counted, nothing re-learned.
+- **refit** — the full weekly re-fit, which is what the live harness does
+
+![Position RPS through the season](docs/figures/checkpoint_rps.svg)
+
+**Re-fitting does beat simply counting the table** — position RPS improves by
+**+0.00214**, better in **36 of 54** season-checkpoints, t = +4.65, **p < 0.0001**.
+The gain peaks at 100 matches played (+0.0039, better in **9 seasons out of 9**) and
+decays to nothing by 300. Relegation log loss improves significantly at the
+150-match checkpoint (−0.0110, better in 7/9, p = 0.039).
+
+**But the honest headline is the gap between the two lower lines, not between
+them.** Banking points dominates the model's contribution at every checkpoint. At
+300 matches played, relegation log loss improves 0.315 → 0.099 from counting the
+table, and 0.099 → 0.099 from re-fitting. Late in a season, the league table is
+doing essentially all of the work.
+
+**A finding that did not survive.** In the aggregated tables, re-fitting appeared to
+*hurt* the title market from 150 matches on, across four consecutive checkpoints —
+which looked like a real effect with a tidy mechanism behind it. Paired properly by
+season it evaporates: mean +0.0057, worse in 5 of 9 seasons, **p = 0.18**. Four
+correlated aggregates are not four observations. It is recorded as suggestive and
+nothing was changed on the strength of it.
+
+---
+
 ## Things that turned out to be wrong
 
 Kept here deliberately — the debugging is the part worth reading.
@@ -309,8 +366,20 @@ window length when a stable parameter shouldn't care. The corrected value is ~0.
   (p=0.30), so this is not "bookmakers got better" — it is our Championship-derived
   ratings failing to price newly promoted squads, which are reshaped by transfer
   spending the model cannot see.
-- **No expected-goals, injury, lineup or transfer data yet.** Goals only. This is the
-  main reason the model trails the market.
+- **The season product has never been scored against a bookmaker.** Title, top-four
+  and relegation probabilities are validated against base rates and against last
+  season's table, but outright market prices were not being archived until
+  September 2026. Every weekly run now freezes that week's prices, so the comparison
+  switches on by itself once 2026-27 finishes — and `market_status()` prints the
+  fact that it cannot run yet rather than letting it be quietly forgotten.
+- **The weekly re-fit adds little after about gameweek 25.** Measured, not assumed;
+  see the checkpoint backtest above. The league table, not the model, carries a
+  late-season forecast.
+- **Championship expected goals do not exist** in any free source. Understat covers
+  the Premier League only, so at high xG weights the two divisions are measured with
+  different instruments — which is visible as the learned division gap sliding from
+  204 to 183 Elo-equivalent as the xG weight goes 0 → 1. It costs roughly half the
+  benefit of the xG layer.
 - **The hyperparameter surface is nearly flat** (0.9796–0.9841 across all twelve
   combinations tried), so the selected window and half-life shouldn't be read as
   meaningful — they're within noise of each other.
@@ -332,6 +401,28 @@ py src\benchmark_elo.py   # validate Elo against ClubElo (requires network)
 ```
 
 Everything except `benchmark_elo.py` runs offline from data in the repo.
+
+**Weekly, during the season:**
+
+```powershell
+py src\fixtures.py             # refresh results from the FPL API
+py src\harness.py              # re-fit, re-simulate, write a dated snapshot
+py src\dashboard.py            # render dashboard.html from that snapshot
+git add data\ && git commit    # the snapshot history IS the deliverable
+```
+
+**Validation suites:**
+
+```powershell
+py src\season_backtest.py      # title / top-four / relegation, held out
+py src\checkpoint_backtest.py  # does the weekly re-run help? (~11 min)
+py src\validate_all.py         # 54 assertions across the whole pipeline
+py src\figures.py              # regenerate the charts in this README
+```
+
+Heed the staleness warning: if the harness reports fixtures past kick-off with no
+result, the feed has not updated and those matches are being *simulated* rather
+than counted.
 
 ---
 

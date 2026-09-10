@@ -574,6 +574,76 @@ tuner "correctly" chose zero, which would have buried a real +0.0030 effect. It
 was caught only because the magnitude was implausible for the perturbation.
 Snapshot `fit.adjustments` once per season and rebuild per match.
 
+### Phase 11 — the in-season update, finally graded — ✅ DONE (2026-09-10)
+`src/checkpoint_backtest.py`, `src/dashboard.py`, `src/figures.py`.
+
+**The hole.** Every validation figure this project had ever quoted came from a
+forecast made on 1 August. The live product is a WEEKLY re-run, and it had
+never been scored at gameweek 10, 20 or 30. That is a validation gap, not a
+missing feature, which is why it came before any new layer.
+
+**Why it was suspect.** Time decay has a one-year half-life, so measured
+against a 5-season window the season in progress carries:
+
+| ~GW | 1 | 4 | 8 | 15 | 22 | 30 | 38 |
+|---|---|---|---|---|---|---|---|
+| share of fitting weight | 0.8% | 3.3% | 6.7% | 12.5% | 18.0% | 23.9% | 29.8% |
+
+**Three arms**, scored at six checkpoints in each of nine held-out seasons
+against the same final table: `frozen` (August forecast untouched), `banked`
+(August strengths, simulated from the real current table) and `refit` (the full
+weekly re-fit the harness does). frozen→banked is the value of counting the
+league table, which needs no model; banked→refit is the only part that is a
+claim about the model.
+
+**RESULT — re-fitting works, modestly.** Position RPS +0.00214, better in
+**36/54** season-checkpoints, t=+4.65, **p<0.0001**. Peaks at 100 matches
+(+0.0039, **9/9 seasons**, p<0.001), decays to +0.0005 by 300. Relegation log
+loss improves significantly at 150 (−0.0110, 7/9, p=0.039).
+
+**But banking points dominates at every checkpoint.** At 300 matches played,
+relegation log loss goes 0.315 → 0.099 from counting the table and 0.099 →
+0.099 from re-fitting. Quote this honestly: late in a season the table does
+almost all the work.
+
+#### ⚠️ A finding that did NOT survive being paired by season
+
+In the aggregate tables, re-fitting appeared to HURT the title market from 150
+matches on, across four consecutive checkpoints, with a tidy mechanism (the
+champion's own probability falling, corr +0.967 with the log-loss damage).
+Paired by season it is **p=0.18, worse in 5/9** — nothing. Four correlated
+aggregates are not four observations. It is recorded as suggestive; nothing was
+changed on the strength of it. This is the same failure mode as the old `rho`
+entry, caught earlier this time.
+
+#### The `extra_boost` knob, and how to A/B it safely
+
+`fit_for_league(..., extra_boost=λ)` multiplies the current season's fitting
+weight, carried as a `weight_mult` COLUMN so it survives the `dropna` inside
+`fit_dixon_coles` without index bookkeeping. **λ=1.0 reproduces the shipped fit
+byte-identically** (ratings, home_adv, rho and ess all exactly equal), so the
+A/B lives in the parameterisation rather than beside it. `tune_boost()` selects
+λ on TUNE seasons and reports on REPORT; do not read the REPORT number if λ was
+chosen anywhere near it.
+
+#### Live dashboard
+
+`py src/dashboard.py` renders `dashboard.html` from the newest snapshot. Every
+figure is READ from `data/snapshots/` or `data/outrights/`. This is deliberate:
+an earlier hand-built results page had middle rows typed from memory and they
+were wrong. `src/figures.py` writes the README's SVG charts from the results
+CSVs, with explicit hex colours — GitHub sanitises SVG and strips CSS
+variables, so a variable-driven palette renders invisible.
+
+#### ⚠️ A dry run was poisoning the outright archive
+
+`run_snapshot` archived the market view even with `write=False`, so a
+back-dated what-if run wrote TODAY's prices under an OLD date — silently
+corrupting the record the season product will eventually be scored against.
+Caught only because two captures de-vigged to identical probabilities. Now
+gated on `write`. The general lesson: a function that both computes and
+persists needs the persistence behind the same flag as the write.
+
 ---
 
 ### Squad-value features — TESTED AND REJECTED (2026-08-24)
@@ -827,6 +897,22 @@ forgotten. It would narrow the gap with ClubElo's globally-connected system.
 ---
 
 ## 9. Immediate next action
+
+**As of 2026-09-10 the live season is 30 matches in and the in-season update is
+validated (Phase 11 above).** The open question is whether the update RULE can
+be improved: `py src/checkpoint_backtest.py boost` sweeps `extra_boost` on TUNE
+seasons and reports on REPORT. Read the TUNE curve before the REPORT number.
+
+Three outcomes and what each means:
+- λ=1 wins on TUNE → the shipped rule is already best of those tested, and the
+  ceiling is the information content of ~30 matches, not the weighting. The
+  next lever is then a different information source, not a re-weighting.
+- λ>1 wins and holds out → a real improvement, found by interrogating the
+  update rule rather than adding a layer.
+- λ>1 wins and fails out of sample → file it with the market blend and squad
+  value. Keep the code.
+
+
 
 **Phases 1-7 are complete.** The model is backtested and calibrated, the season
 simulator is calibrated, and the live harness ships dated weekly snapshots for
