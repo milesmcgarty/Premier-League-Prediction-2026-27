@@ -626,6 +626,39 @@ A/B lives in the parameterisation rather than beside it. `tune_boost()` selects
 λ on TUNE seasons and reports on REPORT; do not read the REPORT number if λ was
 chosen anywhere near it.
 
+#### ⚠️ TESTED AND REJECTED — weighting the current season up does NOT help
+
+TUNE position RPS by λ:
+
+| λ | 0.25 | 0.50 | 0.75 | **1.00** | 1.50 | 2.00 | 3.00 | 5.00 |
+|---|---|---|---|---|---|---|---|---|
+| RPS | .06967 | .06932 | .06909 | **.06906** | .06920 | .06947 | .07020 | .07175 |
+
+λ=1 wins, so REPORT was never scored — there was nothing to report. Exponential
+time decay already weights the season in progress about right.
+
+**A method note worth more than the result.** The FIRST sweep tested only
+λ ∈ {1, 1.5, 2, 3, 5}, because the hypothesis assumed the answer's direction,
+and it returned a monotone curve with its minimum at the edge of the grid. A
+boundary optimum means one side was not tested. Extending downward is what
+established that λ=1 is a genuine interior minimum rather than an artefact of
+where the grid happened to stop. **Whenever a swept parameter lands on an
+endpoint, extend the grid before believing it.**
+
+Shape of the damage, for anyone tempted to revisit: over-weighting hurts LEAST
+at 100 matches (where λ=1.5 is actually −0.00019, i.e. marginally better) and
+WORST at 200. That is consistent with the season's results being informative
+early, when nothing else is, and redundant once the table encodes the same
+thing. But the effects are ~0.0002 against a re-fit gain of +0.00214, so a
+progress-dependent schedule would be fitting noise. Do not build one.
+
+**What this closes.** The answer to "how do we get more context each gameweek"
+is that the weighting dimension is exhausted. The ceiling is the INFORMATION
+CONTENT of ~30 matches, so the next lever must be a new source, not a
+re-weighting. Untested candidates that are genuinely new information rather
+than restatements of the table: rest days and fixture congestion (midweek
+European football, days since last match), and the player layer in Phase 12.
+
 #### Live dashboard
 
 `py src/dashboard.py` renders `dashboard.html` from the newest snapshot. Every
@@ -898,19 +931,24 @@ forgotten. It would narrow the gap with ClubElo's globally-connected system.
 
 ## 9. Immediate next action
 
-**As of 2026-09-10 the live season is 30 matches in and the in-season update is
-validated (Phase 11 above).** The open question is whether the update RULE can
-be improved: `py src/checkpoint_backtest.py boost` sweeps `extra_boost` on TUNE
-seasons and reports on REPORT. Read the TUNE curve before the REPORT number.
+**As of 2026-09-10 the live season is 30 matches in, the in-season update is
+validated, and the update RULE has been swept and left alone (Phase 11 above).**
+The weighting dimension is closed. Anything further has to bring in information
+the league table does not already contain.
 
-Three outcomes and what each means:
-- λ=1 wins on TUNE → the shipped rule is already best of those tested, and the
-  ceiling is the information content of ~30 matches, not the weighting. The
-  next lever is then a different information source, not a re-weighting.
-- λ>1 wins and holds out → a real improvement, found by interrogating the
-  update rule rather than adding a layer.
-- λ>1 wins and fails out of sample → file it with the market blend and squad
-  value. Keep the code.
+The two candidates, in order of expected value per unit of work:
+
+1. **Rest days and fixture congestion.** Days since a team's last match, and
+   whether they played in Europe midweek. This is genuinely new information: it
+   is about the FUTURE, transient, and match-specific — the same properties that
+   made availability work (+0.0030, p=0.018) where squad value failed. Cheap to
+   build: the fixture dates are already in `matches_combined.csv`, and European
+   fixtures are the only part needing a new source. Test it exactly like
+   availability, through `DixonColesFit.adjustments`.
+2. **The player layer** (was Phase 10 in the old roadmap, now Phase 12): minutes
+   model plus empirical-Bayes shrinkage on per-90 rates, coupled to the team
+   model's fixture xG. Deliberately NOT gradient boosting first — shrinkage
+   baseline, then ML only if it beats it.
 
 
 

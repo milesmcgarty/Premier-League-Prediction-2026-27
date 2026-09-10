@@ -307,6 +307,29 @@ season it evaporates: mean +0.0057, worse in 5 of 9 seasons, **p = 0.18**. Four
 correlated aggregates are not four observations. It is recorded as suggestive and
 nothing was changed on the strength of it.
 
+### Should the current season count for more than its calendar age?
+
+The obvious follow-up: if the season in progress is only 3% of the fitting weight
+in September, weight it up. `fit_for_league(..., extra_boost=λ)` does exactly that,
+and λ=1.0 reproduces the shipped fit *byte-identically*, so the A/B is built into
+the parameterisation rather than bolted alongside it. Selected on TUNE seasons
+(2008-09 → 2016-17), with the held-out seasons never consulted:
+
+| λ | 0.25 | 0.50 | 0.75 | **1.00** | 1.50 | 2.00 | 3.00 | 5.00 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| TUNE position RPS | .06967 | .06932 | .06909 | **.06906** | .06920 | .06947 | .07020 | .07175 |
+
+**λ = 1 wins — the shipped update rule is already the best of those tested**, and it
+is a genuine interior minimum rather than an edge of the grid. The first sweep only
+covered λ ≥ 1 and returned a boundary optimum, which is a signal that only one side
+was tested; extending it downward is what established that the answer is interior.
+
+So exponential time decay, chosen for unrelated reasons, already weights the season
+in progress about right. **The ceiling on "more context each gameweek" is the
+information content of thirty matches, not how they are weighted** — which means the
+next improvement has to be a new source of information, not a re-weighting of this
+one.
+
 ---
 
 ## Things that turned out to be wrong

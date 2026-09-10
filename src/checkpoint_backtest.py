@@ -253,7 +253,7 @@ def tune_boost(boosts=(1.0, 1.5, 2.0, 3.0, 5.0), n_sims=8000, verbose=True):
     if verbose:
         print("\nTUNE: mean position RPS by boost")
         for b, v in curve.items():
-            print(f"  boost {b:>4.1f}   {v:.5f}"
+            print(f"  boost {b:>5.2f}   {v:.5f}"
                   f"{'   <- selected' if b == best else ''}")
         print(f"\n>>> SELECTED extra_boost = {best}  (frozen)\n")
 
