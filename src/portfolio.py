@@ -152,27 +152,65 @@ def _ladder():
     return '<div class="ladder">' + "".join(out) + "</div>"
 
 
-def _table(d):
+def _table_now(d):
+    """The league table as it stands. Results only, no model output."""
     rows = full_table(d)
     head = "".join(f"<th>{c}</th>" for c in
-                   ("P", "W", "D", "L", "GF", "GA", "GD", "Pts")) + \
-           "".join(f"<th>{c}</th>" for c in ("xPts", "Title", "Top 4", "Rel"))
+                   ("P", "W", "D", "L", "GF", "GA", "GD", "Pts"))
     body = []
     for r in rows:
         i = r["pos"]
-        cls = ("eur" if i <= 4 else "rel" if i >= 18 else "")
+        cls = "eur" if i <= 4 else "rel" if i >= 18 else ""
         body.append(
             f'<tr class="{cls}"><td class="num">{i}</td>'
             f'<td class="l club">{esc(r["team"])}</td>'
             f'<td>{r["P"]}</td><td>{r["W"]}</td><td>{r["D"]}</td>'
             f'<td>{r["L"]}</td><td>{r["GF"]}</td><td>{r["GA"]}</td>'
-            f'<td>{r["GD"]:+d}</td><td class="pts">{r["Pts"]}</td>'
-            f'<td class="xp">{r["xpts"]:.1f}</td>'
-            f'<td>{pc(r["title"])}</td><td>{pc(r["top4"])}</td>'
-            f'<td>{pc(r["releg"])}</td></tr>')
-    return ('<div class="tscroll"><table><thead><tr><th></th>'
+            f'<td>{r["GD"]:+d}</td><td class="pts">{r["Pts"]}</td></tr>')
+    return ('<div class="tscroll"><table class="now"><thead><tr><th></th>'
             '<th class="l">Club</th>' + head + "</tr></thead><tbody>"
             + "".join(body) + "</tbody></table></div>")
+
+
+def _table_final(d):
+    """The projected FINAL table: expected points, the spread around them, and
+    the three published markets. Ordered by expected points, which is the
+    model's actual ranking rather than the current one."""
+    rows = sorted(full_table(d), key=lambda r: -r["xpts"])
+    lo = min(r["p10"] for r in rows)
+    hi = max(r["p90"] for r in rows)
+    span = max(hi - lo, 1.0)
+
+    def x(v):
+        return 100 * (v - lo) / span
+
+    body = []
+    for i, r in enumerate(rows, 1):
+        cls = "eur" if i <= 4 else "rel" if i >= 18 else ""
+        bar = (f'<span class="dist" title="10th-90th percentile '
+               f'{r["p10"]:.0f} to {r["p90"]:.0f} points">'
+               f'<i class="w" style="left:{x(r["p10"]):.1f}%;'
+               f'width:{x(r["p90"])-x(r["p10"]):.1f}%"></i>'
+               f'<i class="q" style="left:{x(r["p25"]):.1f}%;'
+               f'width:{x(r["p75"])-x(r["p25"]):.1f}%"></i>'
+               f'<b style="left:{x(r["p50"]):.1f}%"></b></span>')
+        body.append(
+            f'<tr class="{cls}"><td class="num">{i}</td>'
+            f'<td class="l club">{esc(r["team"])}</td>'
+            f'<td class="xp">{r["xpts"]:.1f}</td>'
+            f'<td class="dim">{r["p10"]:.0f}</td>'
+            f'<td>{r["p25"]:.0f}</td><td class="pts">{r["p50"]:.0f}</td>'
+            f'<td>{r["p75"]:.0f}</td><td class="dim">{r["p90"]:.0f}</td>'
+            f'<td class="l">{bar}</td>'
+            f'<td>{pc(r["title"])}</td><td>{pc(r["top4"])}</td>'
+            f'<td>{pc(r["releg"])}</td></tr>')
+    return ('<div class="tscroll"><table class="final"><thead><tr><th></th>'
+            '<th class="l">Club</th><th>xPts</th>'
+            '<th class="dim">10th</th><th>25th</th><th>Median</th>'
+            '<th>75th</th><th class="dim">90th</th>'
+            '<th class="l">Points distribution</th>'
+            '<th>Title</th><th>Top 4</th><th>Rel</th>'
+            '</tr></thead><tbody>' + "".join(body) + "</tbody></table></div>")
 
 
 def _layers():
@@ -212,7 +250,8 @@ def full_table(d, season="2627", league="Prem"):
         rows.append({"team": t, **{k: int(c[k]) for k in
                      ("pos", "P", "W", "D", "L", "GF", "GA", "GD", "Pts")},
                      "xpts": f["xpts"], "title": f["title"],
-                     "top4": f["top4"], "releg": f["releg"]})
+                     "top4": f["top4"], "releg": f["releg"],
+                     **{f"p{q}": f[f"pts_{q}"] for q in (10, 25, 50, 75, 90)}})
     rows.sort(key=lambda r: r["pos"])
     return rows
 
@@ -320,6 +359,16 @@ tr.rel td.club{border-left-color:var(--cut)}
 td.num{color:var(--faint)}
 td.pts{color:var(--ink);font-weight:600}
 td.xp{color:var(--kept);font-weight:600}
+
+td.dim{color:var(--faint)}
+th.dim{color:var(--faint);opacity:.75}
+.dist{position:relative;display:inline-block;width:150px;height:11px;
+  vertical-align:middle}
+.dist i{position:absolute;height:100%;border-radius:1px;display:block}
+.dist i.w{background:var(--kept);opacity:.18}
+.dist i.q{background:var(--kept);opacity:.42}
+.dist b{position:absolute;width:2px;height:100%;background:var(--kept)}
+table.final{min-width:930px}
 
 /* kept / cut layers */
 .layers{display:flex;flex-direction:column;gap:1px;background:var(--line);
@@ -445,11 +494,21 @@ def render(d):
   <div class="shead">
     <span class="lab">Live &middot; snapshot {esc(meta["as_of"][:10])}</span>
     <h2>The 2026-27 table, and where it finishes</h2>
-    <p class="lede">{d["played"]} matches played, {d["remaining"]} simulated
-    {meta["n_sims"]:,} times each. Every figure here is read from a dated
-    snapshot on disk rather than typed.</p>
+    <p class="lede"><b>{d["played"]} of 380 league fixtures</b> played &mdash;
+    {d["played"] // 10} of 38 matches per club. The remaining
+    {d["remaining"]} are simulated {meta["n_sims"]:,} times each. Every figure
+    here is read from a dated snapshot on disk rather than typed.</p>
   </div>
-  {_table(d)}
+  <h3 style="margin-bottom:12px">As it stands</h3>
+  {_table_now(d)}
+  <h3 style="margin:34px 0 12px">Projected final table</h3>
+  <p class="prose" style="margin-bottom:14px;font-size:14.5px">Ordered by
+  expected points, so this is the model's ranking rather than today's. The
+  percentiles are the spread of final points across
+  {meta["n_sims"]:,} simulated seasons: the pale bar spans the 10th to 90th,
+  the solid block the 25th to 75th, and the line marks the median. A wide bar
+  is a club the model genuinely cannot place.</p>
+  {_table_final(d)}
   <p class="prose" style="margin-top:18px">{esc(lead["team"])} lead the forecast
   on {lead["xpts"]:.1f} expected points at {pc(lead["title"])} for the title.
   The model is re-fitted and re-simulated every week, and each run is written to

@@ -520,9 +520,16 @@ def summarise(sim, league="Prem"):
     rows = []
     for i, t in enumerate(teams):
         p, q = pos[:, i], pts[:, i]
+        # Quartiles and the median as well as the 10/90 band. The mean alone
+        # hides skew, and a points distribution IS skewed: a club near the top
+        # has more room to fall than to climb.
         row = {"team": t, "exp_pts": q.mean(),
-               "pts_10": np.percentile(q, 10), "pts_90": np.percentile(q, 90),
-               "exp_pos": p.mean(), "title": (p == 1).mean()}
+               "pts_10": np.percentile(q, 10), "pts_25": np.percentile(q, 25),
+               "pts_50": np.percentile(q, 50), "pts_75": np.percentile(q, 75),
+               "pts_90": np.percentile(q, 90),
+               "exp_pos": p.mean(), "med_pos": float(np.median(p)),
+               "mode_pos": int(np.bincount(p, minlength=n + 1)[1:].argmax() + 1),
+               "title": (p == 1).mean()}
         if league == "Prem":
             row["top4"] = (p <= 4).mean()
             row["top6"] = (p <= 6).mean()

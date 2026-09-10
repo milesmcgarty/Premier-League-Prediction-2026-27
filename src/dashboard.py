@@ -95,6 +95,10 @@ def gather(season=CURRENT_SEASON, league="Prem"):
             "GD": int(cur["GD"]) if cur is not None else 0,
             "xpts": float(r["exp_pts"]),
             "lo": float(r["pts_10"]), "hi": float(r["pts_90"]),
+            # carried through verbatim so downstream pages can show the full
+            # spread rather than re-deriving it; absent in older snapshots
+            **{f"pts_{q}": (float(r[f"pts_{q}"]) if f"pts_{q}" in r else None)
+               for q in (10, 25, 50, 75, 90)},
             "title": float(r["title"]), "top4": float(r["top4"]),
             "releg": float(r["releg"]),
             "m_title": mkt.get("title", {}).get(t),
@@ -414,11 +418,12 @@ def _tiles(d):
              f'<span class="big">{pc(lead["title"])}</span>'
              f'<span class="cap">{esc(lead["team"])}, against the market at '
              f'{pc(lead["m_title"]) if lead["m_title"] else "n/a"}</span></div>')
-    t.append(f'<div class="tile"><span class="lab">Season played</span>'
+    t.append(f'<div class="tile"><span class="lab">Fixtures played</span>'
              f'<span class="big">{d["played"]}<span style="font-size:15px;'
              f'color:var(--faint)"> / 380</span></span>'
-             f'<span class="cap">{d["remaining"]} fixtures still simulated, '
-             f'{meta["n_sims"]:,} times each</span></div>')
+             f'<span class="cap">{d["played"] // 10} of 38 per club; the other '
+             f'{d["remaining"]} are simulated {meta["n_sims"]:,} times each'
+             f'</span></div>')
     if mv:
         t.append(f'<div class="tile"><span class="lab">Biggest mover</span>'
                  f'<span class="big" style="color:'
@@ -661,7 +666,7 @@ def render(d):
   <span class="live"><span class="dot"></span>LIVE</span>
   <span><span class="k">SEASON</span> <span class="v">2026-27</span></span>
   <span><span class="k">SNAPSHOT</span> <span class="v">{esc(meta["as_of"][:10])}</span></span>
-  <span><span class="k">PLAYED</span> <span class="v">{d["played"]}/380</span></span>
+  <span><span class="k">FIXTURES</span> <span class="v">{d["played"]}/380</span></span>
   <span><span class="k">SIMS</span> <span class="v">{meta["n_sims"]:,}</span></span>
   <span><span class="k">COMMIT</span> <span class="v">{esc(meta["git_commit"])}</span></span>
 </div></div>
