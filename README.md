@@ -469,6 +469,7 @@ Everything except `benchmark_elo.py` runs offline from data in the repo.
 py src\fixtures.py             # refresh results from the FPL API
 py src\harness.py              # re-fit, re-simulate, write a dated snapshot
 py src\dashboard.py            # render dashboard.html from that snapshot
+py src\figures.py              # refresh the charts AND the table above
 git add data\ && git commit    # the snapshot history IS the deliverable
 ```
 
@@ -478,8 +479,24 @@ git add data\ && git commit    # the snapshot history IS the deliverable
 py src\season_backtest.py      # title / top-four / relegation, held out
 py src\checkpoint_backtest.py  # does the weekly re-run help? (~11 min)
 py src\validate_all.py         # 54 assertions across the whole pipeline
-py src\figures.py              # regenerate the charts in this README
 ```
+
+### The two generated pages
+
+Both are written from the newest snapshot on disk, never typed. If a figure on
+either cannot be traced back to a file under `data/snapshots/` or
+`data/outrights/`, it does not belong on the page — an earlier hand-built
+results page had rows typed from memory and they were wrong.
+
+| Page | Built by | What it is |
+|---|---|---|
+| `dashboard.html` | `py src\dashboard.py` | The operational weekly view: live table, model against the bookmakers, next fixtures, and a self-check showing how closely the forecast reproduces the outright prices it was fitted to |
+| `portfolio.html` | `py src\portfolio.py` | The case study: current and projected tables, the validation ladder, and every component tagged kept or cut with the evidence that decided it |
+
+The self-check on the dashboard is not decoration. The outright fitter was once
+silently fitting against a different simulator from the one that shipped, and
+that residual — 0.553 in logit space, against a 0.02 tolerance — would have made
+it obvious. It now renders on every build.
 
 Heed the staleness warning: if the harness reports fixtures past kick-off with no
 result, the feed has not updated and those matches are being *simulated* rather
