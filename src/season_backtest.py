@@ -16,11 +16,15 @@ BENCHMARKS, in ascending difficulty:
     uniform             every club equally likely
     base rate           historical frequency (1/20, 4/20, 3/20)
     last season's table the previous finishing order, mapped to probabilities
-    bookmaker           NOT AVAILABLE -- no historical August outright prices
-                        exist in this repository, and that remains the single
-                        most important missing comparison. Until it is run, the
-                        season product has never been measured against the only
-                        benchmark that really counts.
+    bookmaker           runs automatically for any COMPLETED season that has an
+                        archived market view under data/outrights/<season>/.
+                        None exist yet for a completed season, because archiving
+                        only began in September 2026. Every weekly harness run
+                        now freezes that week's prices, so this arm switches on
+                        by itself once 2026-27 finishes. Until then the season
+                        product has never been measured against the only
+                        benchmark that really counts, and market_status() says
+                        so explicitly rather than letting it be forgotten.
 """
 import sys
 import warnings
@@ -38,6 +42,72 @@ warnings.filterwarnings("ignore")
 
 N_SIMS = 20000
 BASE_RATE = {"title": 1 / 20, "top4": 4 / 20, "releg": 3 / 20}
+
+
+def market_status(verbose=True):
+    """How close are we to being able to score against a bookmaker?"""
+    import outrights as OR
+    m = load_matches().dropna(subset=["home_goals", "away_goals"])
+    complete = set()
+    for s_, g in m[m["league"] == "Prem"].groupby("season"):
+        if len(g) >= 380:
+            complete.add(s_)
+    rows = []
+    for d in sorted((OR.ARCHIVE_DIR).glob("*")) if OR.ARCHIVE_DIR.exists() else []:
+        if not d.is_dir():
+            continue
+        caps = OR.list_archive(d.name)
+        rows.append({"season": d.name, "captures": len(caps),
+                     "earliest": caps[0].stem if caps else None,
+                     "season_complete": d.name in complete})
+    st = pd.DataFrame(rows)
+    usable = st[st["season_complete"]] if len(st) else st
+    if verbose:
+        print("\nMARKET COMPARISON STATUS")
+        if len(st) == 0:
+            print("  no archived market views at all")
+        else:
+            print(st.to_string(index=False))
+        print(f"  seasons scoreable against a bookmaker: {len(usable)}")
+        if len(usable) == 0:
+            print("  -> archiving began Sept 2026; the first scoreable season is")
+            print("     2026-27, once it finishes. Nothing to do but keep running")
+            print("     the weekly harness, which freezes prices automatically.")
+    return st
+
+
+def score_against_market(season, model_probs, verbose=True):
+    """Score model against the archived market view for one completed season."""
+    import outrights as OR
+    got, when = OR.earliest_capture(season)
+    if not got:
+        return None
+    m = load_matches().dropna(subset=["home_goals", "away_goals"])
+    played = m[(m["season"] == season) & (m["league"] == "Prem")]
+    if len(played) < 380:
+        return None
+    tab = S.results_table(played).set_index("team")
+    n = len(tab)
+    out = {"season": season, "captured": when}
+    for mkt, test in [("title", lambda p: p == 1), ("top4", lambda p: p <= 4),
+                      ("releg", lambda p: p >= n - 2)]:
+        if mkt not in got or mkt not in model_probs:
+            continue
+        teams = [t for t in got[mkt] if t in tab.index and t in model_probs[mkt]]
+        y = np.array([int(test(int(tab.loc[t, "pos"]))) for t in teams])
+        pm = np.array([model_probs[mkt][t] for t in teams])
+        pk = np.array([got[mkt][t] for t in teams])
+        out[mkt] = {"model_ll": _scores(pm, y)[0], "market_ll": _scores(pk, y)[0],
+                    "n": len(teams)}
+    if verbose:
+        print(f"\n{season} (market as of {when})")
+        for mkt in ("title", "top4", "releg"):
+            if mkt in out:
+                d = out[mkt]
+                print(f"    {mkt:<8} model {d['model_ll']:.4f}  "
+                      f"market {d['market_ll']:.4f}  "
+                      f"diff {d['model_ll']-d['market_ll']:+.4f}")
+    return out
 
 
 def _scores(p, y):
@@ -120,9 +190,7 @@ def run(seasons=None, n_sims=N_SIMS, seed=5, verbose=True):
         print(f"\nposition RPS  model {out['rps_model']:.4f}  "
               f"uniform {out['rps_uniform']:.4f}  "
               f"skill {out['rps_skill']:.1%}")
-        print("\nNO BOOKMAKER COMPARISON: no historical August outright prices are")
-        print("held in this repository, so the season product has never been")
-        print("measured against a market. That remains the biggest open gap.")
+        market_status()
         se = lambda p_: np.sqrt(p_ * (1 - p_) / n_sims)
         print(f"\nMonte Carlo error at n={n_sims:,}: "
               f"p=0.02 +/-{1.96*se(0.02)*100:.2f}pp, "

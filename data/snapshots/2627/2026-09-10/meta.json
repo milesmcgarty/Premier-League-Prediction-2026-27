@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-09-10T12:35:15",
-  "generated_utc": "2026-09-10T12:36:35+00:00",
+  "as_of": "2026-09-10T12:40:39",
+  "generated_utc": "2026-09-10T12:42:00+00:00",
   "season": "2627",
   "league": "Prem",
   "n_sims": 20000,
@@ -97,7 +97,7 @@
     "converged": true,
     "newcomer_prior": "mean of 15 League One arrivals"
   },
-  "git_commit": "9b95b85",
+  "git_commit": "6471a07",
   "match_prediction_source": "model_only_plus_market_prior_for_promoted",
   "stale_fixtures": 0
 }

@@ -176,6 +176,13 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
     try:
         got = OR.from_odds_api(season_teams) or OR.load_outrights(season, season_teams)
         if got:
+            # Freeze this week's market view before using it. The working file
+            # is overwritten every time new prices are pasted in; the archive is
+            # what will eventually allow the season product to be scored against
+            # a bookmaker, which it never has been.
+            arch = OR.archive(season, as_of=as_of)
+            if arch:
+                print(f"  archived market view -> {arch.relative_to(ROOT)}")
             od, _hist = OR.fit_outright_offsets(
                 combined, season, league, got, fit=fit, verbose=False)
             merged = dict(fit.adjustments)

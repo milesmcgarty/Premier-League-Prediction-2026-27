@@ -29,7 +29,9 @@ import pandas as pd
 import dixon_coles as dc
 import odds as O
 import simulate as S
-from paths import REFERENCE_DIR, load_matches
+from paths import REFERENCE_DIR, ROOT, load_matches
+
+ARCHIVE_DIR = ROOT / "data" / "outrights"
 
 MARKETS = ("title", "top4", "releg")
 DEFAULT_ITERS = 30
@@ -58,6 +60,74 @@ def write_template(teams, season):
     pd.DataFrame({"team": sorted(teams), "title_odds": "", "top4_odds": "",
                   "releg_odds": ""}).to_csv(p, index=False)
     return p
+
+
+def archive(season, as_of=None, source="oddschecker"):
+    """Freeze today's outright prices, dated and immutable.
+
+    outrights_<season>.csv is a WORKING file: paste new prices into it and the
+    old ones are gone. That is fatal for the one comparison this project cannot
+    currently make, because scoring the season product against a market requires
+    the market's view AS IT WAS, not as it is once the season has resolved.
+
+    Each capture is written to data/outrights/<season>/<date>.csv and never
+    modified. Nine Augusts of these files is what turns "we have never compared
+    the season product to a bookmaker" into a closed question. It costs one
+    paste a week and nothing else.
+    """
+    src = template_path(season)
+    if not src.exists():
+        return None
+    d = pd.read_csv(src)
+    if d[["title_odds", "top4_odds", "releg_odds"]].notna().sum().sum() == 0:
+        return None
+    as_of = pd.Timestamp(as_of or pd.Timestamp.utcnow().normalize())
+    out = ARCHIVE_DIR / season
+    out.mkdir(parents=True, exist_ok=True)
+    path = out / f"{as_of.strftime('%Y-%m-%d')}.csv"
+    if path.exists():
+        return path                      # never overwrite a capture
+    d = d.copy()
+    d["captured"] = as_of.strftime("%Y-%m-%d")
+    d["source"] = source
+    d.to_csv(path, index=False)
+    return path
+
+
+def list_archive(season):
+    """Every captured outright file for a season, oldest first."""
+    out = ARCHIVE_DIR / season
+    if not out.exists():
+        return []
+    return sorted(out.glob("*.csv"))
+
+
+def earliest_capture(season, teams=None):
+    """The earliest archived market view for a season, de-vigged.
+
+    'Earliest' is what the comparison needs: a forecast made in August must be
+    scored against the market's August prices, not against prices that have
+    already absorbed half a season of results.
+    """
+    files = list_archive(season)
+    if not files:
+        return {}, None
+    f = files[0]
+    d = pd.read_csv(f)
+    totals = {"title": 1.0, "top4": 4.0, "releg": 3.0}
+    out = {}
+    for mkt, col in [("title", "title_odds"), ("top4", "top4_odds"),
+                     ("releg", "releg_odds")]:
+        if col not in d.columns:
+            continue
+        sub = d[["team", col]].dropna()
+        sub = sub[pd.to_numeric(sub[col], errors="coerce").notna()]
+        if len(sub) < 10:
+            continue
+        raw = 1.0 / pd.to_numeric(sub[col]).to_numpy(dtype=float)
+        p_ = O.devig(raw, method="power", target=totals[mkt])
+        out[mkt] = dict(zip(sub["team"], np.clip(p_, 1e-4, 1 - 1e-4)))
+    return out, str(f.stem)
 
 
 def load_outrights(season, teams):
