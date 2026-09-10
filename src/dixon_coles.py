@@ -290,6 +290,15 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
     assert_no_lookahead(matches, cutoff, label="fit_dixon_coles")
     w = time_weights(matches["date"], cutoff, half_life_days)
 
+    # Optional per-match weight multiplier, carried as a COLUMN rather than an
+    # argument so it survives the dropna above without any index bookkeeping.
+    # Used to let the current season count for more than its calendar age
+    # implies -- a summer transfer window makes last season partly obsolete in
+    # a way a smooth exponential cannot express. A multiplier of 1 everywhere
+    # is exactly the unmodified fit.
+    if "weight_mult" in matches.columns:
+        w = w * matches["weight_mult"].fillna(1.0).to_numpy(dtype=float)
+
     # params: [attack (n), defence (n), intercept, home_adv, rho]
     init = np.concatenate([np.zeros(n), np.zeros(n), [np.log(1.35)], [0.25], [-0.05]])
     bounds = [(-3, 3)] * (2 * n) + [(-2, 2), (-1, 1), RHO_BOUNDS]
@@ -466,7 +475,7 @@ def attach_newcomer_prior(fit, matches, train_seasons, all_matches):
 
 
 def fit_for_league(all_matches, test_season, league, params=None,
-                   extra=None, cutoff=None, xg_weight=None):
+                   extra=None, cutoff=None, xg_weight=None, extra_boost=1.0):
     """Fit the joint two-division model using `league`'s tuned hyperparameters.
 
     THE entry point for prediction. The harness and the backtest both go through
@@ -486,7 +495,11 @@ def fit_for_league(all_matches, test_season, league, params=None,
     if extra is not None and len(extra):
         keep = [c for c in ["date", "home_team", "away_team", "home_goals",
                             "away_goals", "league", "season"] if c in extra.columns]
+        n_hist = len(train)
         train = pd.concat([train, extra[keep]], ignore_index=True)
+        if extra_boost != 1.0:
+            train["weight_mult"] = np.where(
+                np.arange(len(train)) < n_hist, 1.0, float(extra_boost))
 
     cutoff = pd.Timestamp(cutoff) if cutoff is not None else auto_cutoff
     fit = fit_dixon_coles(train, cutoff=cutoff, half_life_days=p["half_life"],
