@@ -26,7 +26,7 @@ from scipy.optimize import minimize
 from scipy.special import gammaln
 from scipy.stats import poisson
 
-from paths import load_matches
+from paths import assert_no_lookahead, load_matches
 
 # --- defaults, all overridable ---
 WINDOW_SEASONS = 5      # >= 3, else the divisions are disconnected
@@ -286,7 +286,8 @@ def fit_dixon_coles(matches, cutoff=None, half_life_days=HALF_LIFE_DAYS,
         ya[ok] = xg_weight * xa[ok] + (1.0 - xg_weight) * ag[ok]
 
     if cutoff is None:
-        cutoff = matches["date"].max()
+        cutoff = matches["date"].max() + pd.Timedelta(seconds=1)
+    assert_no_lookahead(matches, cutoff, label="fit_dixon_coles")
     w = time_weights(matches["date"], cutoff, half_life_days)
 
     # params: [attack (n), defence (n), intercept, home_adv, rho]

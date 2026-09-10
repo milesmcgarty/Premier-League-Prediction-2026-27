@@ -30,6 +30,38 @@ def load_matches(path=MATCHES_CSV, **kwargs):
     return pd.read_csv(path, dtype={"season": str}, parse_dates=["date"], **kwargs)
 
 
+class LookaheadError(AssertionError):
+    """Raised when training data contains rows at or after the prediction cutoff."""
+
+
+def assert_no_lookahead(train, cutoff, label=""):
+    """Hard guarantee that a fit cannot see the future.
+
+    The project's nested-tuning discipline was previously maintained by
+    convention alone. Convention is not executable, and the one thing that would
+    make every backtest number in this repository meaningless is a training set
+    that quietly includes the season it is predicting. This makes the guarantee
+    a runtime property instead.
+
+    Note the boundary is INCLUSIVE of the cutoff: a match kicking off at the
+    cutoff instant has not been played when the prediction is made, and
+    time_weights clips negative ages to zero, so such a row would silently be
+    given full weight.
+    """
+    if cutoff is None or train is None or len(train) == 0:
+        return
+    if "date" not in train.columns:
+        return
+    late = train["date"] >= pd.Timestamp(cutoff)
+    n = int(late.sum())
+    if n:
+        first = train.loc[late, "date"].min()
+        raise LookaheadError(
+            f"{label or 'fit'}: {n} training row(s) at or after the cutoff "
+            f"{pd.Timestamp(cutoff).date()} (earliest {pd.Timestamp(first).date()}). "
+            "Training data must be strictly earlier than the prediction date.")
+
+
 def active_teams(matches, season=None, league=None):
     """Set of teams that actually played, optionally within one season/league.
 
