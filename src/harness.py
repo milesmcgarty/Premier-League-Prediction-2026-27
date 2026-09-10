@@ -180,9 +180,17 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
             # is overwritten every time new prices are pasted in; the archive is
             # what will eventually allow the season product to be scored against
             # a bookmaker, which it never has been.
-            arch = OR.archive(season, as_of=as_of)
-            if arch:
-                print(f"  archived market view -> {arch.relative_to(ROOT)}")
+            #
+            # ONLY on a real run. A dry run (write=False) is used for what-if
+            # analysis at back-dated as_of values, and archiving from one writes
+            # TODAY's prices under an OLD date -- silently poisoning the very
+            # record the market comparison will be scored on. That happened once,
+            # on 2026-09-10, and was caught only because two captures de-vigged
+            # to identical probabilities.
+            if write:
+                arch = OR.archive(season, as_of=as_of)
+                if arch:
+                    print(f"  archived market view -> {arch.relative_to(ROOT)}")
             od, _hist = OR.fit_outright_offsets(
                 combined, season, league, got, fit=fit, verbose=False)
             merged = dict(fit.adjustments)

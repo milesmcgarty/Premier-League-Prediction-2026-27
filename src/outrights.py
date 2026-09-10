@@ -112,7 +112,24 @@ def earliest_capture(season, teams=None):
     files = list_archive(season)
     if not files:
         return {}, None
-    f = files[0]
+    return _read_capture(files[0])
+
+
+def latest_capture(season, teams=None):
+    """The most recent archived market view, de-vigged.
+
+    The counterpart to earliest_capture. Scoring uses the earliest, because a
+    forecast must be graded against prices that knew no more than it did; a
+    LIVE side-by-side wants the newest, because the question there is what the
+    market thinks now.
+    """
+    files = list_archive(season)
+    if not files:
+        return {}, None
+    return _read_capture(files[-1])
+
+
+def _read_capture(f):
     d = pd.read_csv(f)
     totals = {"title": 1.0, "top4": 4.0, "releg": 3.0}
     out = {}

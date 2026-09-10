@@ -1,0 +1,308 @@
+<title>Premier League Supercomputer</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Azeret+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<style>
+:root{
+  --paper:#E9EDF1; --surface:#FFFFFF; --raise:#F5F7F9;
+  --ink:#131A22; --body:#2E3944; --muted:#5F6C7A; --faint:#8C97A3;
+  --line:#D3DAE1; --hair:#E3E8ED;
+  --model:#27499B; --model-soft:#D9E1F4;
+  --market:#8F6210; --market-soft:#F0E4CB;
+  --danger:#A32E22; --danger-soft:#F3DBD7;
+  --good:#1B6B45;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F141A; --surface:#171E26; --raise:#1E262F;
+    --ink:#E8EDF3; --body:#C3CCD6; --muted:#8E9AA7; --faint:#6B7885;
+    --line:#2B353F; --hair:#232C35;
+    --model:#89A8F2; --model-soft:#1E2B47;
+    --market:#DFAA4C; --market-soft:#3A2E16;
+    --danger:#EC8073; --danger-soft:#40211D;
+    --good:#4FBE8C;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F141A; --surface:#171E26; --raise:#1E262F;
+  --ink:#E8EDF3; --body:#C3CCD6; --muted:#8E9AA7; --faint:#6B7885;
+  --line:#2B353F; --hair:#232C35;
+  --model:#89A8F2; --model-soft:#1E2B47;
+  --market:#DFAA4C; --market-soft:#3A2E16;
+  --danger:#EC8073; --danger-soft:#40211D;
+  --good:#4FBE8C;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--body);
+  font-family:Archivo,system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15px;line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;padding-block:0 72px}
+h1,h2,h3{color:var(--ink);text-wrap:balance;margin:0;letter-spacing:-.018em}
+h1{font-size:clamp(30px,5.4vw,46px);font-weight:700;line-height:1.03}
+h2{font-size:20px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+p{margin:0}
+a{color:var(--model)}
+.mono{font-family:Azeret Mono,ui-monospace,monospace;
+  font-variant-numeric:tabular-nums}
+.prose{font-family:Newsreader,Georgia,serif;font-size:16.5px;line-height:1.62;
+  color:var(--body);max-width:64ch}
+.prose em{color:var(--ink)}
+.lab{font-family:Azeret Mono,ui-monospace,monospace;font-size:10.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:500}
+
+.strip{border-bottom:1px solid var(--line);background:var(--surface)}
+.strip .in{max-width:1080px;margin:0 auto;padding:10px 20px;display:flex;
+  flex-wrap:wrap;gap:8px 26px;align-items:baseline}
+.strip .k{font-family:Azeret Mono,monospace;font-size:11px;color:var(--faint);
+  letter-spacing:.07em}
+.strip .v{font-family:Azeret Mono,monospace;font-size:11px;color:var(--ink);
+  font-weight:600;font-variant-numeric:tabular-nums}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--good);
+  font-weight:600}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex:none}
+
+header.top{padding-block:44px 30px;display:flex;flex-direction:column;gap:14px}
+.sub{max-width:60ch;font-family:Newsreader,Georgia,serif;font-size:17px;
+  line-height:1.55;color:var(--muted)}
+
+section{padding-block:34px 0}
+.shead{display:flex;align-items:baseline;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+  padding-bottom:9px;margin-bottom:20px}
+.shead .note{font-size:12.5px;color:var(--faint)}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:3px;
+  overflow:hidden}
+.tile{background:var(--surface);padding:16px;display:flex;
+  flex-direction:column;gap:5px;min-width:0}
+.tile .big{font-family:Azeret Mono,monospace;font-size:27px;font-weight:600;
+  color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;
+  letter-spacing:-.03em}
+.tile .cap{font-size:12.5px;color:var(--muted);line-height:1.35}
+.tile.mdl .big{color:var(--model)}
+
+.race{display:flex;flex-direction:column;gap:11px}
+.rrow{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center}
+.rname{font-size:13.5px;font-weight:600;color:var(--ink);text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars{display:flex;flex-direction:column;gap:3px;min-width:0}
+.bar{height:15px;border-radius:1.5px;position:relative}
+.bar span{font-family:Azeret Mono,monospace;font-size:10.5px;font-weight:600;
+  position:absolute;left:calc(100% + 7px);top:1px;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.bar.m{background:var(--model)} .bar.m span{color:var(--model)}
+.bar.k{background:var(--market)} .bar.k span{color:var(--market)}
+
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);
+  align-items:center}
+.key i{width:19px;height:8px;border-radius:1.5px;display:inline-block;
+  margin-right:6px;vertical-align:middle}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px;
+  background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:780px;font-size:13.5px}
+th{font-family:Azeret Mono,monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;
+  padding:10px 9px;text-align:right;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--raise)}
+th.l,td.l{text-align:left}
+td{padding:8px 9px;text-align:right;border-bottom:1px solid var(--hair);
+  font-variant-numeric:tabular-nums;
+  font-family:Azeret Mono,ui-monospace,monospace;font-size:12.5px;
+  color:var(--body)}
+tbody tr:last-child td{border-bottom:0}
+td.team{font-family:Archivo,sans-serif;font-size:13.5px;font-weight:600;
+  color:var(--ink);white-space:nowrap;border-left:3px solid transparent}
+tr.contend td.team{border-left-color:var(--model)}
+tr.drop td.team{border-left-color:var(--danger)}
+td.hi{color:var(--ink);font-weight:600}
+.pill{display:inline-block;padding:1px 6px;border-radius:2px;font-size:11.5px;
+  font-weight:600}
+.pill.m{background:var(--model-soft);color:var(--model)}
+.pill.d{background:var(--danger-soft);color:var(--danger)}
+.band{position:relative;height:9px;width:118px;background:var(--hair);
+  border-radius:1px;display:inline-block;vertical-align:middle}
+.band i{position:absolute;height:100%;background:var(--model-soft);
+  border-radius:1px}
+.band b{position:absolute;width:2px;height:100%;background:var(--model)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;
+  padding:18px;display:flex;flex-direction:column;gap:12px}
+figure{margin:0}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:9px;max-width:62ch}
+svg{display:block;max-width:100%;height:auto}
+
+.fx{display:flex;flex-direction:column;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.fxr{background:var(--surface);display:grid;
+  grid-template-columns:86px 1fr 72px 132px;gap:12px;align-items:center;
+  padding:9px 14px}
+.fxd{font-family:Azeret Mono,monospace;font-size:11px;color:var(--faint)}
+.fxt{font-size:13.5px;color:var(--ink);font-weight:600;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fxg{font-family:Azeret Mono,monospace;font-size:11.5px;color:var(--muted);
+  text-align:right}
+.wdl{display:flex;height:15px;border-radius:1.5px;overflow:hidden}
+.wdl i{display:block;font-family:Azeret Mono,monospace;font-size:9.5px;
+  color:#fff;text-align:center;line-height:15px;font-weight:600;
+  overflow:hidden}
+.wdl .h{background:var(--model)} .wdl .d{background:var(--faint)}
+.wdl .a{background:var(--market)}
+
+.caveat{border-left:3px solid var(--market);background:var(--market-soft);
+  padding:15px 18px;border-radius:0 3px 3px 0;display:flex;
+  flex-direction:column;gap:8px}
+.caveat .lab{color:var(--market)}
+.caveat p{font-family:Newsreader,Georgia,serif;font-size:15.5px;line-height:1.6;
+  color:var(--ink);max-width:66ch}
+
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-size:11.5px;color:var(--faint);font-family:Azeret Mono,monospace}
+@media (max-width:820px){
+  .tiles{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .rrow{grid-template-columns:112px 1fr}
+}
+@media (max-width:520px){
+  .fxr{grid-template-columns:1fr;gap:5px}
+  .fxg{text-align:left}
+  .rrow{grid-template-columns:92px 1fr;gap:10px}
+  .rname{font-size:12px}
+  .bar span{font-size:9.5px}
+  table{min-width:660px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;
+  transition:none!important}}
+</style>
+
+<div class="strip"><div class="in">
+  <span class="live"><span class="dot"></span>LIVE</span>
+  <span><span class="k">SEASON</span> <span class="v">2026-27</span></span>
+  <span><span class="k">SNAPSHOT</span> <span class="v">2026-09-10</span></span>
+  <span><span class="k">PLAYED</span> <span class="v">30/380</span></span>
+  <span><span class="k">SIMS</span> <span class="v">20,000</span></span>
+  <span><span class="k">COMMIT</span> <span class="v">6471a07</span></span>
+</div></div>
+
+<div class="wrap">
+<header class="top">
+  <span class="lab">Premier League 2026-27 &middot; weekly forecast</span>
+  <h1>Every match left, simulated 20,000 times</h1>
+  <p class="sub">A Dixon-Coles rating fitted on 4,690 matches
+  across two divisions, corrected by the betting market where the market knows
+  more, and re-run after every round. This page is generated from the snapshot
+  written on 2026-09-10 &mdash; no figure on it is typed by hand.</p>
+</header>
+
+<div class="tiles"><div class="tile mdl"><span class="lab">Title favourite</span><span class="big">64.6%</span><span class="cap">Arsenal, against the market at 55.0%</span></div><div class="tile"><span class="lab">Season played</span><span class="big">30<span style="font-size:15px;color:var(--faint)"> / 380</span></span><span class="cap">350 fixtures still simulated, 20,000 times each</span></div><div class="tile"><span class="lab">Biggest mover</span><span class="big" style="color:var(--good)">+15.6</span><span class="cap">Arsenal title chance, 49% to 65% since last snapshot</span></div><div class="tile"><span class="lab">Held-out match log loss</span><span class="big">0.9760</span><span class="cap">over 3,420 matches; the closing market scores 0.9640</span></div></div>
+
+<section>
+  <div class="shead"><h2>The title race, against the people paid to get it right</h2>
+  <span class="note">Bookmaker prices de-vigged with the power method</span></div>
+  <div class="race"><div class="rrow"><div class="rname">Arsenal</div><div class="bars"><div class="bar m" style="width:82.0%"><span>64.6%</span></div><div class="bar k" style="width:69.8%"><span>55.0%</span></div></div></div><div class="rrow"><div class="rname">Manchester City</div><div class="bars"><div class="bar m" style="width:25.5%"><span>20.1%</span></div><div class="bar k" style="width:31.0%"><span>24.4%</span></div></div></div><div class="rrow"><div class="rname">Chelsea</div><div class="bars"><div class="bar m" style="width:13.8%"><span>10.9%</span></div><div class="bar k" style="width:12.9%"><span>10.1%</span></div></div></div><div class="rrow"><div class="rname">Liverpool</div><div class="bars"><div class="bar m" style="width:2.7%"><span>2.1%</span></div><div class="bar k" style="width:6.4%"><span>5.0%</span></div></div></div><div class="rrow"><div class="rname">Manchester United</div><div class="bars"><div class="bar m" style="width:2.0%"><span>1.6%</span></div><div class="bar k" style="width:3.5%"><span>2.8%</span></div></div></div><div class="rrow"><div class="rname">Tottenham Hotspur</div><div class="bars"><div class="bar m" style="width:0.6%"><span>0.0%</span></div><div class="bar k" style="width:0.8%"><span>0.6%</span></div></div></div><div class="rrow"><div class="rname">Newcastle United</div><div class="bars"><div class="bar m" style="width:0.6%"><span>0.3%</span></div><div class="bar k" style="width:0.6%"><span>0.4%</span></div></div></div><div class="rrow"><div class="rname">Aston Villa</div><div class="bars"><div class="bar m" style="width:0.6%"><span>0.0%</span></div><div class="bar k" style="width:0.6%"><span>0.4%</span></div></div></div></div><div class="key"><span><i style="background:var(--model)"></i>This model</span><span><i style="background:var(--market)"></i>Bookmakers, 2026-09-10, margin removed</span></div>
+  <p class="prose" style="margin-top:20px">The model is more confident in Arsenal than the market is (64.6% against 55.0%), and less confident in Manchester City (20.1% against 24.4%). That gap is the
+  interesting part: on individual matches this model has never beaten the closing
+  line, so where it disagrees at season level it is usually the model that should
+  move. The exception is the part of the season no bookmaker prices yet.</p>
+</section>
+
+<section>
+  <div class="shead"><h2>Where the table finishes</h2>
+  <span class="note">Ordered by expected points</span></div>
+  <div class="tscroll"><table><thead><tr><th>#</th><th class="l">Team</th><th>P</th><th>Pts</th><th>GD</th><th class="l">Points, 10th-90th percentile</th><th>xPts</th><th>Title</th><th>Top 4</th><th>Releg</th></tr></thead><tbody><tr class="contend"><td>1</td><td class="l team">Arsenal</td><td>3</td><td class="hi">9</td><td>+5</td><td class="l"><span class="band" title="76 to 98 points"><i style="left:73.3%;width:24.4%"></i><b style="left:86.0%"></b></span><span style="color:var(--faint);margin-left:8px">76-98</span></td><td class="hi">87.4</td><td><span class="pill m">64.6%</span></td><td>98.2%</td><td style="color:var(--faint)">&lt;0.1%</td></tr><tr class="contend"><td>2</td><td class="l team">Manchester City</td><td>3</td><td class="hi">9</td><td>+5</td><td class="l"><span class="band" title="66 to 91 points"><i style="left:62.2%;width:27.8%"></i><b style="left:75.9%"></b></span><span style="color:var(--faint);margin-left:8px">66-91</span></td><td class="hi">78.3</td><td><span class="pill m">20.1%</span></td><td>87.6%</td><td style="color:var(--faint)">&lt;0.1%</td></tr><tr class="contend"><td>3</td><td class="l team">Chelsea</td><td>3</td><td class="hi">6</td><td>+1</td><td class="l"><span class="band" title="61 to 87 points"><i style="left:56.7%;width:28.9%"></i><b style="left:71.3%"></b></span><span style="color:var(--faint);margin-left:8px">61-87</span></td><td class="hi">74.2</td><td><span class="pill m">10.9%</span></td><td>76.8%</td><td style="color:var(--faint)">&lt;0.1%</td></tr><tr class=""><td>4</td><td class="l team">Liverpool</td><td>3</td><td class="hi">5</td><td>+2</td><td class="l"><span class="band" title="53 to 78 points"><i style="left:47.8%;width:27.8%"></i><b style="left:62.1%"></b></span><span style="color:var(--faint);margin-left:8px">53-78</span></td><td class="hi">65.9</td><td>2.1%</td><td>46.3%</td><td>0.1%</td></tr><tr class=""><td>5</td><td class="l team">Manchester United</td><td>3</td><td class="hi">4</td><td>+1</td><td class="l"><span class="band" title="51 to 77 points"><i style="left:45.6%;width:28.9%"></i><b style="left:59.7%"></b></span><span style="color:var(--faint);margin-left:8px">51-77</span></td><td class="hi">63.7</td><td>1.6%</td><td>37.0%</td><td>0.2%</td></tr><tr class=""><td>6</td><td class="l team">Brentford</td><td>3</td><td class="hi">5</td><td>+3</td><td class="l"><span class="band" title="43 to 69 points"><i style="left:36.7%;width:28.9%"></i><b style="left:50.8%"></b></span><span style="color:var(--faint);margin-left:8px">43-69</span></td><td class="hi">55.7</td><td>0.1%</td><td>12.4%</td><td>2.0%</td></tr><tr class=""><td>7</td><td class="l team">Newcastle United</td><td>3</td><td class="hi">5</td><td>+2</td><td class="l"><span class="band" title="40 to 66 points"><i style="left:33.3%;width:28.9%"></i><b style="left:47.6%"></b></span><span style="color:var(--faint);margin-left:8px">40-66</span></td><td class="hi">52.8</td><td>0.3%</td><td>7.9%</td><td>3.2%</td></tr><tr class=""><td>8</td><td class="l team">Everton</td><td>3</td><td class="hi">5</td><td>+2</td><td class="l"><span class="band" title="41 to 65 points"><i style="left:34.4%;width:26.7%"></i><b style="left:47.3%"></b></span><span style="color:var(--faint);margin-left:8px">41-65</span></td><td class="hi">52.6</td><td style="color:var(--faint)">&lt;0.1%</td><td>5.6%</td><td>2.8%</td></tr><tr class=""><td>9</td><td class="l team">Brighton</td><td>3</td><td class="hi">4</td><td>+3</td><td class="l"><span class="band" title="38 to 65 points"><i style="left:31.1%;width:30.0%"></i><b style="left:46.2%"></b></span><span style="color:var(--faint);margin-left:8px">38-65</span></td><td class="hi">51.6</td><td style="color:var(--faint)">&lt;0.1%</td><td>5.9%</td><td>5.4%</td></tr><tr class=""><td>10</td><td class="l team">Leeds United</td><td>3</td><td class="hi">5</td><td>+1</td><td class="l"><span class="band" title="38 to 63 points"><i style="left:31.1%;width:27.8%"></i><b style="left:45.1%"></b></span><span style="color:var(--faint);margin-left:8px">38-63</span></td><td class="hi">50.6</td><td style="color:var(--faint)">&lt;0.1%</td><td>4.6%</td><td>4.4%</td></tr><tr class=""><td>11</td><td class="l team">Tottenham Hotspur</td><td>3</td><td class="hi">1</td><td>-5</td><td class="l"><span class="band" title="36 to 62 points"><i style="left:28.9%;width:28.9%"></i><b style="left:43.0%"></b></span><span style="color:var(--faint);margin-left:8px">36-62</span></td><td class="hi">48.7</td><td style="color:var(--faint)">&lt;0.1%</td><td>3.3%</td><td>8.4%</td></tr><tr class=""><td>12</td><td class="l team">Bournemouth</td><td>3</td><td class="hi">2</td><td>-1</td><td class="l"><span class="band" title="35 to 61 points"><i style="left:27.8%;width:28.9%"></i><b style="left:42.3%"></b></span><span style="color:var(--faint);margin-left:8px">35-61</span></td><td class="hi">48.1</td><td style="color:var(--faint)">&lt;0.1%</td><td>3.1%</td><td>9.3%</td></tr><tr class=""><td>13</td><td class="l team">Nottingham Forest</td><td>3</td><td class="hi">2</td><td>-1</td><td class="l"><span class="band" title="35 to 60 points"><i style="left:27.8%;width:27.8%"></i><b style="left:41.4%"></b></span><span style="color:var(--faint);margin-left:8px">35-60</span></td><td class="hi">47.3</td><td style="color:var(--faint)">&lt;0.1%</td><td>2.3%</td><td>9.1%</td></tr><tr class=""><td>14</td><td class="l team">Aston Villa</td><td>3</td><td class="hi">1</td><td>-5</td><td class="l"><span class="band" title="33 to 60 points"><i style="left:25.6%;width:30.0%"></i><b style="left:40.8%"></b></span><span style="color:var(--faint);margin-left:8px">33-60</span></td><td class="hi">46.7</td><td style="color:var(--faint)">&lt;0.1%</td><td>2.1%</td><td>12.7%</td></tr><tr class=""><td>15</td><td class="l team">Sunderland</td><td>3</td><td class="hi">4</td><td>+0</td><td class="l"><span class="band" title="32 to 55 points"><i style="left:24.4%;width:25.6%"></i><b style="left:37.1%"></b></span><span style="color:var(--faint);margin-left:8px">32-55</span></td><td class="hi">43.4</td><td style="color:var(--faint)">&lt;0.1%</td><td>1.0%</td><td>17.1%</td></tr><tr class=""><td>16</td><td class="l team">Crystal Palace</td><td>3</td><td class="hi">3</td><td>-4</td><td class="l"><span class="band" title="30 to 55 points"><i style="left:22.2%;width:27.8%"></i><b style="left:36.5%"></b></span><span style="color:var(--faint);margin-left:8px">30-55</span></td><td class="hi">42.9</td><td style="color:var(--faint)">&lt;0.1%</td><td>1.0%</td><td>20.0%</td></tr><tr class="drop"><td>17</td><td class="l team">Fulham</td><td>3</td><td class="hi">0</td><td>-3</td><td class="l"><span class="band" title="28 to 52 points"><i style="left:20.0%;width:26.7%"></i><b style="left:33.2%"></b></span><span style="color:var(--faint);margin-left:8px">28-52</span></td><td class="hi">39.9</td><td style="color:var(--faint)">&lt;0.1%</td><td>0.3%</td><td><span class="pill d">27.4%</span></td></tr><tr class="drop"><td>18</td><td class="l team">Ipswich Town</td><td>3</td><td class="hi">3</td><td>-4</td><td class="l"><span class="band" title="15 to 53 points"><i style="left:5.6%;width:42.2%"></i><b style="left:25.8%"></b></span><span style="color:var(--faint);margin-left:8px">15-53</span></td><td class="hi">33.2</td><td style="color:var(--faint)">&lt;0.1%</td><td>1.5%</td><td><span class="pill d">57.2%</span></td></tr><tr class="drop"><td>19</td><td class="l team">Hull City</td><td>3</td><td class="hi">7</td><td>+3</td><td class="l"><span class="band" title="17 to 51 points"><i style="left:7.8%;width:37.8%"></i><b style="left:25.5%"></b></span><span style="color:var(--faint);margin-left:8px">17-51</span></td><td class="hi">33.0</td><td style="color:var(--faint)">&lt;0.1%</td><td>1.7%</td><td><span class="pill d">58.6%</span></td></tr><tr class="drop"><td>20</td><td class="l team">Coventry City</td><td>3</td><td class="hi">0</td><td>-5</td><td class="l"><span class="band" title="13 to 50 points"><i style="left:3.3%;width:41.1%"></i><b style="left:23.2%"></b></span><span style="color:var(--faint);margin-left:8px">13-50</span></td><td class="hi">30.9</td><td style="color:var(--faint)">&lt;0.1%</td><td>1.3%</td><td><span class="pill d">62.3%</span></td></tr></tbody></table></div>
+</section>
+
+<section>
+  <div class="shead"><h2>This week</h2>
+  <span class="note">2 snapshots so far</span></div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Title probability by snapshot</h3>
+      <figure><svg viewBox="0 0 470 240" role="img" aria-label="Title probability by snapshot"><line x1="34" y1="214.0" x2="374" y2="214.0" stroke="var(--hair)" stroke-width="1"/><text x="27" y="217.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">0%</text><line x1="34" y1="164.0" x2="374" y2="164.0" stroke="var(--hair)" stroke-width="1"/><text x="27" y="167.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">19%</text><line x1="34" y1="114.0" x2="374" y2="114.0" stroke="var(--hair)" stroke-width="1"/><text x="27" y="117.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">38%</text><line x1="34" y1="64.0" x2="374" y2="64.0" stroke="var(--hair)" stroke-width="1"/><text x="27" y="67.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">57%</text><line x1="34" y1="14.0" x2="374" y2="14.0" stroke="var(--hair)" stroke-width="1"/><text x="27" y="17.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">76%</text><text x="34.0" y="232" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">24 Aug</text><text x="374.0" y="232" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">10 Sep</text><polyline points="34.0,85.4 374.0,44.5" fill="none" stroke="var(--model)" stroke-width="2.4" stroke-linejoin="round"/><circle cx="34.0" cy="85.4" r="2.2" fill="var(--model)"/><circle cx="374.0" cy="44.5" r="3.2" fill="var(--model)"/><text x="382.0" y="48.0" fill="var(--model)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Arsenal</text><text x="382.0" y="59.5" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">65%</text><polyline points="34.0,175.1 374.0,161.2" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><circle cx="34.0" cy="175.1" r="2.2" fill="var(--muted)"/><circle cx="374.0" cy="161.2" r="3.2" fill="var(--muted)"/><text x="382.0" y="164.7" fill="var(--muted)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Manchester City</text><text x="382.0" y="176.2" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">20%</text><polyline points="34.0,174.8 374.0,185.4" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><circle cx="34.0" cy="174.8" r="2.2" fill="var(--muted)"/><circle cx="374.0" cy="185.4" r="3.2" fill="var(--muted)"/><text x="382.0" y="188.9" fill="var(--muted)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Chelsea</text><text x="382.0" y="200.4" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">11%</text><polyline points="34.0,195.8 374.0,208.5" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><circle cx="34.0" cy="195.8" r="2.2" fill="var(--muted)"/><circle cx="374.0" cy="208.5" r="3.2" fill="var(--muted)"/><text x="382.0" y="212.0" fill="var(--muted)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Liverpool</text><text x="382.0" y="223.5" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">2%</text></svg>
+      <figcaption>Each weekly snapshot is written to a dated, immutable folder,
+      so a mid-season change to the model shows up in the history rather than
+      quietly rewriting it.</figcaption></figure>
+    </div>
+    <div class="panel">
+      <h3>Biggest disagreements with the book</h3>
+      <div class="tscroll"><table style="min-width:0"><thead><tr><th class="l">Team</th><th class="l">Market</th><th>Model</th><th>Book</th><th>Diff</th></tr></thead><tbody><tr><td class="l team">Chelsea</td><td class="l" style="color:var(--muted)">top four</td><td style="color:var(--model)">76.8%</td><td style="color:var(--market)">64.6%</td><td class="hi">+12.2</td></tr><tr><td class="l team">Arsenal</td><td class="l" style="color:var(--muted)">title</td><td style="color:var(--model)">64.6%</td><td style="color:var(--market)">55.0%</td><td class="hi">+9.6</td></tr><tr><td class="l team">Aston Villa</td><td class="l" style="color:var(--muted)">relegation</td><td style="color:var(--model)">12.7%</td><td style="color:var(--market)">4.8%</td><td class="hi">+7.9</td></tr><tr><td class="l team">Liverpool</td><td class="l" style="color:var(--muted)">top four</td><td style="color:var(--model)">46.3%</td><td style="color:var(--market)">53.8%</td><td class="hi">-7.5</td></tr><tr><td class="l team">Ipswich Town</td><td class="l" style="color:var(--muted)">relegation</td><td style="color:var(--model)">57.2%</td><td style="color:var(--market)">50.1%</td><td class="hi">+7.0</td></tr><tr><td class="l team">Manchester City</td><td class="l" style="color:var(--muted)">top four</td><td style="color:var(--model)">87.6%</td><td style="color:var(--market)">81.4%</td><td class="hi">+6.2</td></tr></tbody></table></div>
+      <p style="font-size:12.5px;color:var(--muted)">Percentage points, model
+      minus bookmaker. Large gaps are candidates for the model being wrong,
+      not for a bet.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Next fixtures</h2>
+  <span class="note">Home / draw / away, and expected goals</span></div>
+  <div class="fx"><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Aston Villa <span style="color:var(--faint);font-weight:400">v</span> Nottingham Forest</div><div class="fxg">1.4&ndash;1.2</div><div class="wdl" title="home 42.1%, draw 27.3%, away 30.7%"><i class="h" style="width:42.1%">42</i><i class="d" style="width:27.3%">27</i><i class="a" style="width:30.7%">31</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Bournemouth <span style="color:var(--faint);font-weight:400">v</span> Brentford</div><div class="fxg">1.5&ndash;1.5</div><div class="wdl" title="home 38.9%, draw 25.4%, away 35.7%"><i class="h" style="width:38.9%">39</i><i class="d" style="width:25.4%">25</i><i class="a" style="width:35.7%">36</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Chelsea <span style="color:var(--faint);font-weight:400">v</span> Hull City</div><div class="fxg">3.0&ndash;0.7</div><div class="wdl" title="home 83.7%, draw 11.2%, away 5.1%"><i class="h" style="width:83.7%">84</i><i class="d" style="width:11.2%">11</i><i class="a" style="width:5.1%">5</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Crystal Palace <span style="color:var(--faint);font-weight:400">v</span> Ipswich Town</div><div class="fxg">1.9&ndash;1.1</div><div class="wdl" title="home 54.2%, draw 23.5%, away 22.3%"><i class="h" style="width:54.2%">54</i><i class="d" style="width:23.5%">24</i><i class="a" style="width:22.3%">22</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Liverpool <span style="color:var(--faint);font-weight:400">v</span> Fulham</div><div class="fxg">2.3&ndash;1.0</div><div class="wdl" title="home 66.3%, draw 19.2%, away 14.5%"><i class="h" style="width:66.3%">66</i><i class="d" style="width:19.2%">19</i><i class="a" style="width:14.5%">15</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Tottenham Hotspur <span style="color:var(--faint);font-weight:400">v</span> Everton</div><div class="fxg">1.4&ndash;1.2</div><div class="wdl" title="home 42.3%, draw 27.4%, away 30.3%"><i class="h" style="width:42.3%">42</i><i class="d" style="width:27.4%">27</i><i class="a" style="width:30.3%">30</i></div></div><div class="fxr"><div class="fxd">Sat 12 Sep</div><div class="fxt">Sunderland <span style="color:var(--faint);font-weight:400">v</span> Arsenal</div><div class="fxg">0.6&ndash;1.7</div><div class="wdl" title="home 11.4%, draw 23.6%, away 65.0%"><i class="h" style="width:11.4%">11</i><i class="d" style="width:23.6%">24</i><i class="a" style="width:65.0%">65</i></div></div><div class="fxr"><div class="fxd">Sun 13 Sep</div><div class="fxt">Coventry City <span style="color:var(--faint);font-weight:400">v</span> Brighton</div><div class="fxg">1.2&ndash;1.8</div><div class="wdl" title="home 24.4%, draw 24.1%, away 51.5%"><i class="h" style="width:24.4%">24</i><i class="d" style="width:24.1%">24</i><i class="a" style="width:51.5%">51</i></div></div><div class="fxr"><div class="fxd">Sun 13 Sep</div><div class="fxt">Manchester United <span style="color:var(--faint);font-weight:400">v</span> Manchester City</div><div class="fxg">1.4&ndash;1.6</div><div class="wdl" title="home 32.4%, draw 25.0%, away 42.6%"><i class="h" style="width:32.4%">32</i><i class="d" style="width:25.0%">25</i><i class="a" style="width:42.6%">43</i></div></div><div class="fxr"><div class="fxd">Mon 14 Sep</div><div class="fxt">Leeds United <span style="color:var(--faint);font-weight:400">v</span> Newcastle United</div><div class="fxg">1.5&ndash;1.4</div><div class="wdl" title="home 41.1%, draw 25.9%, away 33.0%"><i class="h" style="width:41.1%">41</i><i class="d" style="width:25.9%">26</i><i class="a" style="width:33.0%">33</i></div></div></div>
+</section>
+
+<section>
+  <div class="shead"><h2>How much does a round of football actually teach it?</h2>
+  <span class="note">Measured 2026-09-10</span></div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Share of fitting weight from this season</h3>
+      <figure><svg viewBox="0 0 470 240" role="img" aria-label="Share of fitting weight from the current season, by gameweek"><line x1="38" y1="210.0" x2="454" y2="210.0" stroke="var(--hair)" stroke-width="1"/><text x="31" y="213.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">0%</text><line x1="38" y1="171.2" x2="454" y2="171.2" stroke="var(--hair)" stroke-width="1"/><text x="31" y="174.7" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">7%</text><line x1="38" y1="132.4" x2="454" y2="132.4" stroke="var(--hair)" stroke-width="1"/><text x="31" y="135.9" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">14%</text><line x1="38" y1="93.6" x2="454" y2="93.6" stroke="var(--hair)" stroke-width="1"/><text x="31" y="97.1" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">21%</text><line x1="38" y1="54.8" x2="454" y2="54.8" stroke="var(--hair)" stroke-width="1"/><text x="31" y="58.3" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">28%</text><line x1="38" y1="16.0" x2="454" y2="16.0" stroke="var(--hair)" stroke-width="1"/><text x="31" y="19.5" text-anchor="end" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">35%</text><text x="38.0" y="231" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">GW1</text><text x="139.2" y="231" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">GW10</text><text x="251.6" y="231" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">GW20</text><text x="364.1" y="231" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">GW30</text><text x="454.0" y="231" text-anchor="middle" fill="var(--faint)" font-size="9.5" font-family="Azeret Mono,monospace">GW38</text><polygon points="38.0,210.0 38.0,205.6 71.7,191.7 116.7,172.9 195.4,140.7 274.1,110.2 364.1,77.5 454.0,44.8 454.0,210.0" fill="var(--model-soft)"/><polyline points="38.0,205.6 71.7,191.7 116.7,172.9 195.4,140.7 274.1,110.2 364.1,77.5 454.0,44.8" fill="none" stroke="var(--model)" stroke-width="2.2" stroke-linejoin="round"/><line x1="71.7" y1="16" x2="71.7" y2="210.0" stroke="var(--danger)" stroke-width="1.4" stroke-dasharray="3 3"/><circle cx="71.7" cy="191.7" r="3.4" fill="var(--danger)"/><text x="78.7" y="28.0" fill="var(--danger)" font-size="10" font-weight="600" font-family="Archivo,sans-serif">today: 3.3%</text></svg>
+      <figcaption>Time decay has a one-year half-life, so early-season matches
+      are a rounding error against five seasons of history. The current season
+      does not carry a third of the weight until the season is over.</figcaption>
+      </figure>
+    </div>
+    <div class="panel">
+      <h3>What moved the forecast since August</h3>
+      <div class="tscroll"><table style="min-width:0"><thead><tr>
+        <th class="l">Team</th><th>24 Aug</th><th>Market</th><th>Results</th>
+        <th>Now</th></tr></thead><tbody><tr><td class="l team">Arsenal</td><td>43%</td><td style="color:var(--market)">+14.0</td><td style="color:var(--model)">+8.7</td><td class="hi">65%</td></tr><tr><td class="l team">Manchester City</td><td>37%</td><td style="color:var(--market)">-13.0</td><td style="color:var(--model)">-1.9</td><td class="hi">20%</td></tr><tr><td class="l team">Chelsea</td><td>4%</td><td style="color:var(--market)">+8.7</td><td style="color:var(--model)">-0.1</td><td class="hi">11%</td></tr></tbody></table></div>
+      <p style="font-size:12.5px;color:var(--muted)">Title probability, in
+      percentage points, from re-running the whole pipeline four ways at a fixed
+      date. Applying the outright market to all twenty clubs moved Arsenal twice
+      as far as three rounds of results did.</p>
+    </div>
+  </div>
+  <div class="caveat" style="margin-top:24px">
+    <span class="lab">Known limit</span>
+    <p>Every validation figure below was produced by forecasting a season from
+    1 August. The weekly in-season update &mdash; the thing this page actually
+    is &mdash; has never been backtested at gameweek 10, 20 or 30. It is the
+    next piece of work, and until it is done the honest claim is that the
+    pre-season forecast is validated and the weekly refresh is not.</p>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>What it has been graded on</h2>
+  <span class="note">9 held-out seasons,
+  3,420 matches</span></div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Match log loss, lower is better</h3>
+      <div class="race"><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:400">Uniform (1/3 each)</div><div class="bars"><div class="bar" style="width:1.5%;background:var(--line)"><span style="color:var(--muted)">1.0986</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:400">Base rates</div><div class="bars"><div class="bar" style="width:18.5%;background:var(--line)"><span style="color:var(--muted)">1.0682</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:400">Model, goals only</div><div class="bars"><div class="bar" style="width:68.1%;background:var(--line)"><span style="color:var(--muted)">0.9868</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:400">+ xG layer</div><div class="bars"><div class="bar" style="width:68.7%;background:var(--line)"><span style="color:var(--muted)">0.9858</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:400">+ market prior</div><div class="bars"><div class="bar" style="width:72.9%;background:var(--line)"><span style="color:var(--muted)">0.9790</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:600">+ availability</div><div class="bars"><div class="bar" style="width:74.7%;background:var(--model)"><span style="color:var(--model)">0.9760</span></div></div></div><div class="rrow" style="grid-template-columns:172px 1fr"><div class="rname" style="font-weight:600">Market (closing line)</div><div class="bars"><div class="bar" style="width:82.0%;background:var(--market)"><span style="color:var(--market)">0.9640</span></div></div></div></div>
+      <p style="font-size:12.5px;color:var(--muted)">Each layer was kept only
+      because it improved a rolling backtest with its hyperparameters chosen on
+      earlier seasons. Squad value and a market blend were tested the same way
+      and rejected.</p>
+    </div>
+    <div class="panel">
+      <h3>Season markets, against a base-rate forecast</h3>
+      <div class="tscroll"><table style="min-width:0"><thead><tr><th class="l">Market</th><th>Model</th><th>Baseline</th><th>Skill</th></tr></thead><tbody><tr><td class="l team">Title</td><td>0.0767</td><td>0.1985</td><td class="hi">61%</td></tr><tr><td class="l team">Top four</td><td>0.2590</td><td>0.5004</td><td class="hi">48%</td></tr><tr><td class="l team">Relegation</td><td>0.3452</td><td>0.4227</td><td class="hi">18%</td></tr><tr><td class="l team">Final position (RPS)</td><td>0.1068</td><td>0.1750</td><td class="hi">39%</td></tr></tbody></table></div>
+      <p style="font-size:12.5px;color:var(--muted)">Relegation is the weakest of
+      the three, and promoted clubs are the reason: Championship form correlates
+      +0.004 with Premier League points across 75 promotions.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Generated 2026-09-10 13:59 from
+  data/snapshots/2627/2026-09-10</span>
+  <span>window 5yr &middot; half-life 365d
+  &middot; xG 0.25 &middot; home 0.201
+  &middot; rho -0.054</span>
+</footer>
+</div>
