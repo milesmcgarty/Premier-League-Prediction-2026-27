@@ -24,6 +24,7 @@ import pandas as pd
 
 import dixon_coles as dc
 import availability as AVAIL
+import contracts
 import market_prior as MP
 import outrights as OR
 import simulate as S
@@ -250,6 +251,12 @@ def run_snapshot(season=CURRENT_SEASON, as_of=None, n_sims=N_SIMS,
         "match_prediction_source": "model_only_plus_market_prior_for_promoted",
         "stale_fixtures": int(len(stale)),
     }
+
+    # Contract check BEFORE anything is written. A snapshot that fails is not
+    # written at all: no forecast is better than a quietly malformed one.
+    contracts.check_season_forecast(forecast, teams=season_teams, league=league)
+    if len(upcoming):
+        contracts.check_match_predictions(upcoming)
 
     if write:
         d = SNAPSHOT_DIR / season / as_of.strftime("%Y-%m-%d")

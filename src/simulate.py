@@ -115,6 +115,44 @@ PROMOTED_UP_RATIO = 0.5
 # draw so that compressing one side does not shift the mean.
 PHI0 = 0.3989422804014327
 
+# WITHIN-SEASON EVOLUTION. Strength is drawn once per scenario and, until now,
+# held fixed for all 380 fixtures. That makes an injury crisis in November or a
+# sacking in January unrepresentable, and it is the remaining candidate for why
+# held-out coverage sits at 75% against a nominal 80% -- the bootstrap work ruled
+# out parameter uncertainty as the cause. The season is split into blocks and a
+# club's strength takes a random-walk step between them, so later fixtures carry
+# more uncertainty than earlier ones, which is the real shape of the problem.
+# 0.0 reproduces the frozen behaviour exactly.
+#
+# TESTED AND NOT ADOPTED (2026-09-10). Tuned on TUNE (which selected 0.15) and
+# evaluated held out:
+#     frozen (shipped)            75.0% cover, PIT KS 0.0567, p 0.589
+#     within-season walk 0.15     74.4% cover, PIT KS 0.0580, p 0.560
+# No improvement. The walk is demeaned across blocks so a club's season-average
+# strength is preserved, which is correct for the mean but means the walk
+# redistributes strength WITHIN a season rather than widening the points total:
+# a club strong in autumn and weak in spring finishes on roughly the same points
+# as a steady one. Kept, defaulted off, because it is the right structure to
+# reach for if a future signal (say a managerial-change term) needs to act on
+# part of a season rather than all of it.
+WITHIN_SEASON_SD = 0.0
+N_BLOCKS = 4
+
+# POINTS DEDUCTIONS. Profitability-and-sustainability breaches are a live
+# feature of the modern Premier League and were previously assumed away
+# entirely, which is not defensible for a published relegation market. Recent
+# history: Everton -10 then reduced to -6, and Nottingham Forest -4, both in
+# 2023-24. That is two clubs in the three seasons since the rules began being
+# enforced, so roughly a 3% chance per club per season with a magnitude of
+# 4 to 10 points.
+#
+# The estimate is WEAK: three seasons of evidence and a regime that is still
+# changing. It is deliberately a scenario rather than a forecast, and the effect
+# on any individual club is small; what it does is stop the relegation market
+# implying that deductions cannot happen at all.
+DEDUCTION_P = 0.03
+DEDUCTION_RANGE = (4, 10)
+
 # Number of distinct strength draws. Each scenario plays several seasons, so the
 # cost is one grid build per scenario rather than per simulated season.
 N_SCENARIOS = 200
@@ -183,7 +221,8 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
                     fit=None, seed=0, max_goals=MAX_GOALS,
                     strength_sd=None, strength_sd_promoted=None,
                     promoted_up_ratio=None, n_scenarios=N_SCENARIOS,
-                    boot_sd=None):
+                    boot_sd=None, within_sd=None, n_blocks=N_BLOCKS,
+                    deduction_p=None):
     """Simulate a season from `as_of` onwards.
 
     Matches before `as_of` use their ACTUAL results; the rest are sampled.
@@ -199,6 +238,8 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
                             else strength_sd_promoted)
     promoted_up_ratio = (PROMOTED_UP_RATIO if promoted_up_ratio is None
                          else promoted_up_ratio)
+    within_sd = WITHIN_SEASON_SD if within_sd is None else within_sd
+    deduction_p = DEDUCTION_P if deduction_p is None else deduction_p
     season_m = matches[(matches["season"] == season) &
                        (matches["league"] == league)].copy()
     teams = sorted(set(season_m["home_team"]) | set(season_m["away_team"]))
@@ -245,6 +286,10 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
     F = len(remaining)
     size = max_goals + 1
     ks = np.arange(size)
+    # fixtures split into equal-sized chronological blocks
+    ord_ = np.argsort(remaining["date"].to_numpy())
+    block_of = np.empty(F, dtype=int)
+    block_of[ord_] = np.minimum((np.arange(F) * n_blocks) // max(F, 1), n_blocks - 1)
 
     # one strength draw per scenario; each scenario plays `per` seasons
     # per-team dispersion: promoted sides are genuinely less predictable
@@ -285,8 +330,20 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
         else:
             atk, dfn = atk0, dfn0
 
-        lh = np.exp(fit.intercept + atk[hi] - dfn[ai] + fit.home_adv)
-        la = np.exp(fit.intercept + atk[ai] - dfn[hi])
+        # A club's strength takes a random-walk step between blocks, so an
+        # injury crisis or a collapse can happen mid-season rather than being
+        # decided in August. block_of maps each fixture to its block.
+        if within_sd > 0:
+            steps = rng.normal(0, within_sd, (n_blocks, n)).cumsum(axis=0)
+            steps -= steps.mean(axis=0, keepdims=True)   # keep the season mean
+            atk_b = atk[None, :] + steps
+            dfn_b = dfn[None, :] + steps
+            lh = np.exp(fit.intercept + atk_b[block_of, hi]
+                        - dfn_b[block_of, ai] + fit.home_adv)
+            la = np.exp(fit.intercept + atk_b[block_of, ai] - dfn_b[block_of, hi])
+        else:
+            lh = np.exp(fit.intercept + atk[hi] - dfn[ai] + fit.home_adv)
+            la = np.exp(fit.intercept + atk[ai] - dfn[hi])
 
         # (F, size) marginals -> (F, size, size) joint
         ph = poisson.pmf(ks[None, :], lh[:, None])
@@ -323,6 +380,14 @@ def simulate_season(matches, season, league, n_sims=10000, as_of=None,
         np.add.at(gf[sl].T, hi, hg);   np.add.at(ga[sl].T, hi, ag)
         np.add.at(gf[sl].T, ai, ag);   np.add.at(ga[sl].T, ai, hg)
         np.add.at(pts[sl].T, hi, hpts); np.add.at(pts[sl].T, ai, apts)
+
+    # Points deductions, applied after all fixtures are simulated. Goal
+    # difference is untouched, which is how the sanction actually works.
+    if deduction_p > 0:
+        hit = rng.random((n_sims, n)) < deduction_p
+        amt = rng.integers(DEDUCTION_RANGE[0], DEDUCTION_RANGE[1] + 1,
+                           (n_sims, n)).astype(np.int32)
+        pts = pts - np.where(hit, amt, 0)
 
     gd = gf - ga
     return _rank_and_pack(rng, teams, pts, gf, ga, gd, n_sims,
